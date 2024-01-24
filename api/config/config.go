@@ -28,6 +28,15 @@ type APIConfig struct {
 	Storage  StorageConfig `yaml:"storage"`
 }
 
+// SendEmail struct describes the email sending parameters
+type SendEmailInfo struct {
+	ToEmails     string
+	ExecutionID  string
+	ResourceType string
+	Columns []string
+	Filters map[string]string
+}
+
 // LoadAPI will load yaml file go struct
 func LoadAPI(location string) (APIConfig, error) {
 	config := APIConfig{}

@@ -2,6 +2,8 @@ package email_utility
 
 import (
 	"fmt"
+	"finala/api/config"
+	"strings"
 
 	"github.com/jung-kurt/gofpdf"
 	log "github.com/sirupsen/logrus"
@@ -18,6 +20,20 @@ type SMTPSender struct {
 	Dialer *gomail.Dialer
 }
 
+const (
+	marginH = 10.0
+	lineHt  = 3.0
+	cellGap = 0.5
+)
+
+type cellType struct {
+	str  string
+	list [][]byte
+	ht   float64
+}
+
+var cell cellType
+
 func NewSMTPSender(host string, port int, username, password string) *SMTPSender {
 	return &SMTPSender{
 		Dialer: gomail.NewDialer(host, port, username, password),
@@ -25,9 +41,10 @@ func NewSMTPSender(host string, port int, username, password string) *SMTPSender
 }
 
 func (s *SMTPSender) Send(to, subject, body, attachment string) error {
+	mailArray := strings.Split(to, ",")
 	m := gomail.NewMessage()
 	m.SetHeader("From", s.Dialer.Username)
-	m.SetHeader("To", to)
+	m.SetHeader("To", mailArray...)
 	m.SetHeader("Subject", subject)
 	m.SetBody("text/html", body)
 	if attachment != "" {
@@ -38,7 +55,7 @@ func (s *SMTPSender) Send(to, subject, body, attachment string) error {
 }
 
 //func CreatePDF(pdfFileName, title string, data [][]string) {
-func CreatePDF(pdfFileName, description string, data []map[string]interface{}) {
+func CreatePDF(pdfFileName, description string, data []map[string]interface{}, sendEmailInfo config.SendEmailInfo) {
 	pdf := gofpdf.New("P", "mm", "A4", "")
 	pdf.AddPage()
 
@@ -49,37 +66,67 @@ func CreatePDF(pdfFileName, description string, data []map[string]interface{}) {
 	pdf.Cell(0, 10, "Finala Report")
 	pdf.Ln(15)
 
-	// Set font
-	pdf.SetFont("Arial", "", 6)
+	pdf.SetFont("Arial", "", 8)
+	pdf.Cell(0, 10, fmt.Sprintf("Resource Type: %s", sendEmailInfo.ResourceType))
+	pdf.Ln(5)
 
 	// Title
 	pdf.Cell(0, 10, description)
 	pdf.Ln(15)
-
-
-	var orderKeys []string
 	
-	for _, headerCol := range data[0] {
-		if innerMap, ok := headerCol.(map[string]interface{}); ok {
-			for colKeys, _ := range innerMap {
-				orderKeys = append(orderKeys, colKeys)
-			}
-		}
+	// Set font
+	pdf.SetFont("Arial", "", 6)
+	// log.WithFields(log.Fields{"events": len("test")}).Info("333333333333", data)
+	alignList := []string{"L", "C", "R"}
+	orderKeys, columnWidths := configureHeaderColumn(sendEmailInfo, data)
+	// data = filterExecutnData(sendEmailInfo, data)
+	// log.WithFields(log.Fields{"events": len("test")}).Info("555555555555555", data)
+	// set header
+	for i, colNames := range orderKeys {
+		pdf.CellFormat(columnWidths[i], 10, colNames, "1", 0, "", false, 0, "")
 	}
-	
-	for _, colNames := range orderKeys {
-		pdf.CellFormat(25, 10, colNames, "1", 0, "", false, 0, "")
-	}
-	
 	pdf.Ln(-1)
 
+	// set table cell values
+	y := pdf.GetY()
 	for _, tableRecords := range data {
 		for _, rows := range tableRecords {
 			if colValues, ok := rows.(map[string]interface{}); ok {
-				for _, orderKey := range orderKeys {
-					pdf.CellFormat(25, 10, fmt.Sprintf("%v", colValues[orderKey]), "1", 0, "", false, 0, "")
+				maxHt := lineHt
+				// calculate the height of the cell
+				var cellList []cellType
+				for colJ, orderKey := range orderKeys {
+					cell.str = fmt.Sprintf("%v", colValues[orderKey])
+					cell.list = pdf.SplitLines([]byte(cell.str), columnWidths[colJ]-cellGap-cellGap)
+					cell.ht = float64(len(cell.list)) * lineHt
+					if cell.ht > maxHt {
+						maxHt = cell.ht
+					}
+					cellList = append(cellList, cell)
 				}
-				pdf.Ln(-1)
+				// bing values to the cell
+				x := marginH
+				for colJ, _ := range orderKeys {
+					cell = cellList[colJ]
+					cellY := y + cellGap + (maxHt-cell.ht)/2
+					if cellY > 270 {
+						pdf.AddPage()
+						// Reset positions
+						x = 10.0
+						y = 20.0
+						cellY = y + cellGap + (maxHt-cell.ht)/2
+					}
+					pdf.Rect(x, y, columnWidths[colJ], maxHt+cellGap+cellGap, "D")
+
+					for splitJ := 0; splitJ < len(cell.list); splitJ++ {
+						pdf.SetXY(x+cellGap, cellY)
+						pdf.CellFormat(columnWidths[colJ]-cellGap-cellGap, lineHt, string(cell.list[splitJ]), "", 0,
+							alignList[1], false, 0, "")
+						cellY += lineHt
+					}
+					x += columnWidths[colJ]
+				}
+				y += maxHt + cellGap + cellGap
 			}
 		}
 	}
@@ -93,11 +140,50 @@ func CreatePDF(pdfFileName, description string, data []map[string]interface{}) {
 	log.WithFields(log.Fields{"events": len("test")}).Info("Pdf created", pdfFileName)
 }
 
-func isInArray(target string, arr []string) bool {
-	for _, value := range arr {
-		if value == target {
-			return true
+func configureHeaderColumn(sendEmailInfo config.SendEmailInfo, data []map[string]interface{})([]string, []float64) {
+	var orderKeys []string
+	var columnWidths[]float64
+	if len(sendEmailInfo.Columns) == 0 {
+		for _, headerCol := range data[0] {
+			if innerMap, ok := headerCol.(map[string]interface{}); ok {
+				for colKeys, _ := range innerMap {
+					orderKeys = append(orderKeys, colKeys)
+					//width := pdf.GetStringWidth(colKeys) + 6
+				}
+			}
+		}
+	} else{
+		for _, cols := range sendEmailInfo.Columns {
+			orderKeys = append(orderKeys, cols)
 		}
 	}
-	return false
+
+	var numCols = len(orderKeys);
+
+	for _, _ = range orderKeys {
+
+		columnWidths = append(columnWidths, float64(195/numCols))
+	}
+
+	return orderKeys, columnWidths
+}
+
+func filterExecutnData(sendEmailInfo config.SendEmailInfo, data []map[string]interface{}) ([]map[string]interface{}) {
+	var result []map[string]interface{}
+	if len(sendEmailInfo.Filters) != 0 {
+		for _, tableRecords := range data {
+			for _, rows := range tableRecords {
+				if colValues, ok := rows.(map[string]interface{}); ok {
+					for key, filter := range sendEmailInfo.Filters {
+						if filter == colValues[key] {
+							result  = append(result, colValues)
+						}
+						log.WithFields(log.Fields{"events": len("test")}).Info("4444444444", filter, colValues[key])
+					}
+				}
+			}
+		}
+		return result;
+	}
+	return data;
 }

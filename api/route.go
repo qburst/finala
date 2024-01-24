@@ -5,6 +5,7 @@ import (
 	"finala/api/email_utility"
 	"finala/api/httpparameters"
 	"finala/api/storage"
+	"finala/api/config"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -28,12 +29,6 @@ type DetectEventsInfo struct {
 	Data         interface{}
 }
 
-// SendEmail struct describes the email sending parameters
-type SendEmailInfo struct {
-	ToEmails     string
-	ExecutionID  string
-	ResourceType string
-}
 
 type ReportAPIResponse struct {
  	Message string `json:"message"`
@@ -48,7 +43,6 @@ func (server *Server) GetSummary(resp http.ResponseWriter, req *http.Request) {
 	params := mux.Vars(req)
 	executionID := params["executionID"]
 	filters := httpparameters.GetFilterQueryParamWithOutPrefix(queryParamFilterPrefix, queryParams)
-
 	response, err := server.storage.GetSummary(executionID, filters)
 	if err != nil {
 		server.JSONWrite(resp, http.StatusInternalServerError, HttpErrorResponse{Error: err.Error()})
@@ -212,7 +206,7 @@ func (server *Server) SendReport(resp http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	var sendEmailInfo SendEmailInfo
+	var sendEmailInfo config.SendEmailInfo
 	err := json.Unmarshal(buf, &sendEmailInfo)
 	if err != nil {
 		server.JSONWrite(resp, http.StatusBadRequest, HttpErrorResponse{Error: err.Error()})
@@ -222,10 +216,6 @@ func (server *Server) SendReport(resp http.ResponseWriter, req *http.Request) {
 	toEmails := sendEmailInfo.ToEmails
 	executionID := sendEmailInfo.ExecutionID
 	resourceType := sendEmailInfo.ResourceType
-
-	log.WithFields(log.Fields{
-		"events": len("test"),
-	}).Info("sendEmailInfo", sendEmailInfo)
 
 	if executionID == "" {
 		server.JSONWrite(resp, http.StatusOK, "Execution Id is mandatory")
@@ -238,11 +228,10 @@ func (server *Server) SendReport(resp http.ResponseWriter, req *http.Request) {
 	responseMsg := "Email sent successfully"
 	statusCode := 200;
 
-	queryParams := req.URL.Query()
-
-	filters := httpparameters.GetFilterQueryParamWithOutPrefix(queryParamFilterPrefix, queryParams)
-
-	responseData, err := server.storage.GetResources(resourceType, executionID, filters)
+	//queryParams := req.URL.Query()
+	// filters := map[string]string{}
+	//filters := httpparameters.GetFilterQueryParamWithOutPrefix(queryParamFilterPrefix, queryParams)
+	responseData, err := server.storage.GetResources(resourceType, executionID, sendEmailInfo.Filters)
 	if err != nil {
 		server.JSONWrite(resp, http.StatusInternalServerError, HttpErrorResponse{Error: err.Error()})
 		return
@@ -255,7 +244,7 @@ func (server *Server) SendReport(resp http.ResponseWriter, req *http.Request) {
 
 	pdfFileName := "Finala_report.pdf"
 	pdfContent := "A Comprehensive Analysis of Efficiency Factors and Recommendations for Improvement"
-	email_utility.CreatePDF(pdfFileName, pdfContent, responseData)
+	email_utility.CreatePDF(pdfFileName, pdfContent, responseData, sendEmailInfo)
 
 	username := "justinjoseph@qburst.com"
 	password := "gxip gpyj dcvc rdme"
@@ -268,9 +257,7 @@ func (server *Server) SendReport(resp http.ResponseWriter, req *http.Request) {
 	if err != nil {
 		responseMsg = "Error in sending mail"
 		statusCode = 500
-		log.WithFields(log.Fields{
-			"events": len("test"),
-		}).Info("---------", err)
+		log.WithFields(log.Fields{ "events": len("test"), }).Info("---------", err)
 	}
 
 	server.JSONWrite(resp, http.StatusOK, ReportAPIResponse{Message: responseMsg, Status: statusCode})
