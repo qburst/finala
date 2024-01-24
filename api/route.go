@@ -2,10 +2,10 @@ package api
 
 import (
 	"encoding/json"
+	"finala/api/config"
 	"finala/api/email_utility"
 	"finala/api/httpparameters"
 	"finala/api/storage"
-	"finala/api/config"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -29,13 +29,11 @@ type DetectEventsInfo struct {
 	Data         interface{}
 }
 
-
 type ReportAPIResponse struct {
- 	Message string `json:"message"`
- 	Status int `json:"status"`
- 	Data [][]string `json:"data"`
+	Message string     `json:"message"`
+	Status  int        `json:"status"`
+	Data    [][]string `json:"data"`
 }
-
 
 // GetSummary return list of summary executions
 func (server *Server) GetSummary(resp http.ResponseWriter, req *http.Request) {
@@ -43,6 +41,7 @@ func (server *Server) GetSummary(resp http.ResponseWriter, req *http.Request) {
 	params := mux.Vars(req)
 	executionID := params["executionID"]
 	filters := httpparameters.GetFilterQueryParamWithOutPrefix(queryParamFilterPrefix, queryParams)
+
 	response, err := server.storage.GetSummary(executionID, filters)
 	if err != nil {
 		server.JSONWrite(resp, http.StatusInternalServerError, HttpErrorResponse{Error: err.Error()})
@@ -226,7 +225,7 @@ func (server *Server) SendReport(resp http.ResponseWriter, req *http.Request) {
 		return
 	}
 	responseMsg := "Email sent successfully"
-	statusCode := 200;
+	statusCode := 200
 
 	//queryParams := req.URL.Query()
 	// filters := map[string]string{}
@@ -257,7 +256,7 @@ func (server *Server) SendReport(resp http.ResponseWriter, req *http.Request) {
 	if err != nil {
 		responseMsg = "Error in sending mail"
 		statusCode = 500
-		log.WithFields(log.Fields{ "events": len("test"), }).Info("---------", err)
+		log.WithFields(log.Fields{"events": len("test")}).Info("---------", err)
 	}
 
 	server.JSONWrite(resp, http.StatusOK, ReportAPIResponse{Message: responseMsg, Status: statusCode})
