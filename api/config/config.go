@@ -22,10 +22,18 @@ type StorageConfig struct {
 	ElasticSearch ElasticsearchConfig `yaml:"elasticsearch"`
 }
 
+type EmailConfig struct {
+	Username   string `yaml:"username"`
+	Password   string `yaml:"password"`
+	SMTPServer string `yaml:"smtpServer"`
+	SMTPPort   string `yaml:"smtpPort"`
+}
+
 // APIConfig present the application config
 type APIConfig struct {
 	LogLevel string        `yaml:"log_level"`
 	Storage  StorageConfig `yaml:"storage"`
+	SMTPConf EmailConfig   `yaml:"smtp"`
 }
 
 // SendEmail struct describes the email sending parameters
@@ -33,8 +41,8 @@ type SendEmailInfo struct {
 	ToEmails     string
 	ExecutionID  string
 	ResourceType string
-	Columns []string
-	Filters map[string]string
+	Columns      []string
+	Filters      map[string]string
 }
 
 // LoadAPI will load yaml file go struct

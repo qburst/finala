@@ -1,8 +1,9 @@
 package email_utility
 
 import (
-	"fmt"
 	"finala/api/config"
+	"fmt"
+	"sort"
 	"strings"
 
 	"github.com/jung-kurt/gofpdf"
@@ -64,7 +65,7 @@ func CreatePDF(pdfFileName, description string, data []map[string]interface{}, s
 
 	// Title
 	pdf.Cell(0, 10, "Finala Report")
-	pdf.Ln(15)
+	pdf.Ln(5)
 
 	pdf.SetFont("Arial", "", 8)
 	pdf.Cell(0, 10, fmt.Sprintf("Resource Type: %s", sendEmailInfo.ResourceType))
@@ -72,15 +73,12 @@ func CreatePDF(pdfFileName, description string, data []map[string]interface{}, s
 
 	// Title
 	pdf.Cell(0, 10, description)
-	pdf.Ln(15)
-	
+	pdf.Ln(10)
+
 	// Set font
 	pdf.SetFont("Arial", "", 6)
-	// log.WithFields(log.Fields{"events": len("test")}).Info("333333333333", data)
 	alignList := []string{"L", "C", "R"}
 	orderKeys, columnWidths := configureHeaderColumn(sendEmailInfo, data)
-	// data = filterExecutnData(sendEmailInfo, data)
-	// log.WithFields(log.Fields{"events": len("test")}).Info("555555555555555", data)
 	// set header
 	for i, colNames := range orderKeys {
 		pdf.CellFormat(columnWidths[i], 10, colNames, "1", 0, "", false, 0, "")
@@ -109,7 +107,7 @@ func CreatePDF(pdfFileName, description string, data []map[string]interface{}, s
 				for colJ, _ := range orderKeys {
 					cell = cellList[colJ]
 					cellY := y + cellGap + (maxHt-cell.ht)/2
-					if cellY > 270 {
+					if cellY > 240 {
 						pdf.AddPage()
 						// Reset positions
 						x = 10.0
@@ -120,7 +118,7 @@ func CreatePDF(pdfFileName, description string, data []map[string]interface{}, s
 
 					for splitJ := 0; splitJ < len(cell.list); splitJ++ {
 						pdf.SetXY(x+cellGap, cellY)
-						pdf.CellFormat(columnWidths[colJ]-cellGap-cellGap, lineHt, string(cell.list[splitJ]), "", 0,
+						pdf.CellFormat(columnWidths[colJ]-cellGap-cellGap, 1, string(cell.list[splitJ]), "", 0,
 							alignList[1], false, 0, "")
 						cellY += lineHt
 					}
@@ -140,25 +138,30 @@ func CreatePDF(pdfFileName, description string, data []map[string]interface{}, s
 	log.WithFields(log.Fields{"events": len("test")}).Info("Pdf created", pdfFileName)
 }
 
-func configureHeaderColumn(sendEmailInfo config.SendEmailInfo, data []map[string]interface{})([]string, []float64) {
+func configureHeaderColumn(sendEmailInfo config.SendEmailInfo, data []map[string]interface{}) ([]string, []float64) {
 	var orderKeys []string
-	var columnWidths[]float64
+	var columnWidths []float64
 	if len(sendEmailInfo.Columns) == 0 {
 		for _, headerCol := range data[0] {
 			if innerMap, ok := headerCol.(map[string]interface{}); ok {
 				for colKeys, _ := range innerMap {
-					orderKeys = append(orderKeys, colKeys)
-					//width := pdf.GetStringWidth(colKeys) + 6
+					if colKeys != "LaunchTime" {
+						orderKeys = append(orderKeys, colKeys)
+					}
 				}
 			}
 		}
-	} else{
+	} else {
 		for _, cols := range sendEmailInfo.Columns {
-			orderKeys = append(orderKeys, cols)
+			if cols != "LaunchTime" {
+				orderKeys = append(orderKeys, cols)
+			}
 		}
 	}
 
-	var numCols = len(orderKeys);
+	sort.Sort(sort.StringSlice(orderKeys))
+
+	var numCols = len(orderKeys)
 
 	for _, _ = range orderKeys {
 
@@ -168,7 +171,7 @@ func configureHeaderColumn(sendEmailInfo config.SendEmailInfo, data []map[string
 	return orderKeys, columnWidths
 }
 
-func filterExecutnData(sendEmailInfo config.SendEmailInfo, data []map[string]interface{}) ([]map[string]interface{}) {
+func filterExecutnData(sendEmailInfo config.SendEmailInfo, data []map[string]interface{}) []map[string]interface{} {
 	var result []map[string]interface{}
 	if len(sendEmailInfo.Filters) != 0 {
 		for _, tableRecords := range data {
@@ -176,14 +179,13 @@ func filterExecutnData(sendEmailInfo config.SendEmailInfo, data []map[string]int
 				if colValues, ok := rows.(map[string]interface{}); ok {
 					for key, filter := range sendEmailInfo.Filters {
 						if filter == colValues[key] {
-							result  = append(result, colValues)
+							result = append(result, colValues)
 						}
-						log.WithFields(log.Fields{"events": len("test")}).Info("4444444444", filter, colValues[key])
 					}
 				}
 			}
 		}
-		return result;
+		return result
 	}
-	return data;
+	return data
 }

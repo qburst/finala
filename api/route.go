@@ -244,11 +244,11 @@ func (server *Server) SendReport(resp http.ResponseWriter, req *http.Request) {
 	pdfFileName := "Finala_report.pdf"
 	pdfContent := "A Comprehensive Analysis of Efficiency Factors and Recommendations for Improvement"
 	email_utility.CreatePDF(pdfFileName, pdfContent, responseData, sendEmailInfo)
-
-	username := "justinjoseph@qburst.com"
-	password := "gxip gpyj dcvc rdme"
-	smtpServer := "smtp.gmail.com"
-	smtpPort := 587
+	emailConfig, err := config.LoadAPI("/etc/finala/config.yaml")
+	username := emailConfig.SMTPConf.Username
+	password := emailConfig.SMTPConf.Password
+	smtpServer := emailConfig.SMTPConf.SMTPServer
+	smtpPort, _ := strconv.Atoi(emailConfig.SMTPConf.SMTPPort)
 	subject := "Finala Report"
 	body := "<p>Kindly review the attached PDF for the comprehensive report on Finala.</p>"
 	sender := email_utility.NewSMTPSender(smtpServer, smtpPort, username, password)
