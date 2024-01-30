@@ -96,7 +96,7 @@ func CreatePDF(pdfFileName, description string, data []map[string]interface{}, s
 				for colJ, orderKey := range orderKeys {
 					cell.str = fmt.Sprintf("%v", colValues[orderKey])
 					cell.list = pdf.SplitLines([]byte(cell.str), columnWidths[colJ]-cellGap-cellGap)
-					cell.ht = float64(len(cell.list)) * lineHt
+					cell.ht = (float64(len(cell.list)) * lineHt) + 3
 					if cell.ht > maxHt {
 						maxHt = cell.ht
 					}
@@ -106,8 +106,9 @@ func CreatePDF(pdfFileName, description string, data []map[string]interface{}, s
 				x := marginH
 				for colJ, _ := range orderKeys {
 					cell = cellList[colJ]
-					cellY := y + cellGap + (maxHt-cell.ht)/2
+					cellY := 3 + y + cellGap + (maxHt-cell.ht)/2
 					if cellY > 240 {
+						//log.WithFields(log.Fields{"events": len("test")}).Info("new pdf page", "cellY-", cellY, "maxHt-cell.ht- ", maxHt, cell.ht, x, y)
 						pdf.AddPage()
 						// Reset positions
 						x = 10.0
@@ -118,7 +119,7 @@ func CreatePDF(pdfFileName, description string, data []map[string]interface{}, s
 
 					for splitJ := 0; splitJ < len(cell.list); splitJ++ {
 						pdf.SetXY(x+cellGap, cellY)
-						pdf.CellFormat(columnWidths[colJ]-cellGap-cellGap, 1, string(cell.list[splitJ]), "", 0,
+						pdf.CellFormat(columnWidths[colJ]-cellGap-cellGap, 0, string(cell.list[splitJ]), "", 0,
 							alignList[1], false, 0, "")
 						cellY += lineHt
 					}
