@@ -2,7 +2,6 @@ import React, { Fragment, useState, useEffect } from "react";
 import PropTypes from "prop-types";
 import { connect } from "react-redux";
 import EmailIcon from "@material-ui/icons/Email";
-import Typography from "@mui/material/Typography";
 import { makeStyles } from "@material-ui/core/styles";
 import Modal from "@material-ui/core/Modal";
 import Alert from "@material-ui/lab/Alert";
@@ -39,6 +38,7 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 const CustomToolbar = (props, getFlits) => {
+  console.log("BASE URL", http.baseURL);
   const classes = useStyles();
   // getModalStyle is not a pure function, we roll the style only on the first render
   const [modalStyle] = useState(getModalStyle);
@@ -117,8 +117,8 @@ const CustomToolbar = (props, getFlits) => {
     event.preventDefault();
     formData.filters = props.getFlits;
     setCookie("toEmails", formData.toEmails, 7); // Sets a cookie named 'cookieName' with value 'cookieValue' that expires in 7 days
-    const fullUrl = `http://127.0.0.1:8081/api/v1/send-report`;
-    // const fullUrl = `${process.env.REACT_APP_API_BASE_URL}/api/v1/send-report`;
+    // const fullUrl = `http://127.0.0.1:8081/api/v1/send-report`;
+    const fullUrl = `${http.baseURL}/api/v1/send-report`;
     try {
       fetch(fullUrl, {
         method: "POST", // Specify the HTTP method
@@ -158,7 +158,9 @@ const CustomToolbar = (props, getFlits) => {
   return (
     <Fragment>
       <span onClick={handleClick}>
-        <EmailIcon />
+        <button className="MuiButtonBase-root MuiIconButton-root jss430">
+          <EmailIcon />
+        </button>
       </span>
       <Modal
         open={open}
