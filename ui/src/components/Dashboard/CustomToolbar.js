@@ -25,7 +25,7 @@ function getModalStyle() {
     top: `${top}%`,
     left: `${left}%`,
     transform: `translate(-${top}%, -${left}%)`,
-    border: none,
+    border: `none`,
   };
 }
 const useStyles = makeStyles((theme) => ({
