@@ -251,7 +251,7 @@ const ResourceTable = ({
               },
               onFilterChange: (column, filterList, type, index) => {
                 addFiltersObject({
-                  ["Data." + column]: filterList[index][0],
+                  ["Data." + column]: String(filterList[index][0]),
                 });
               },
               onColumnViewChange: (changedColumn, action) => {
