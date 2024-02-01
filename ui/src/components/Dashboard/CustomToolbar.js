@@ -92,7 +92,12 @@ const CustomToolbar = (props, getFlits) => {
   };
   const handleClick = () => {
     console.log("clicked on icon!");
+    console.log(getCookie("toEmails"));
     setOpen(true);
+    if (getCookie("toEmails")) {
+      //if cookie set then auto filled in form
+      setFormData({ ...formData, toEmails: getCookie("toEmails") });
+    }
   };
   const handleOpen = () => {
     setOpen(true);
@@ -176,7 +181,7 @@ const CustomToolbar = (props, getFlits) => {
           {/* {"GET cols array:-" + JSON.stringify(props.getCols, null, 2)} */}
           <form onSubmit={handleSubmit}>
             <FormControl>
-              <h6>Note:You can pass multiple email by comma separated.</h6>
+              <h4>Note:You can pass multiple email by comma separated.</h4>
               <FormLabel>Enter Email:</FormLabel>
               <TextField
                 name="toEmails"
@@ -189,6 +194,8 @@ const CustomToolbar = (props, getFlits) => {
                 fullWidth
                 margin="normal"
                 value={formData.toEmails}
+                multiline={true}
+                rows={3}
               ></TextField>
               <input
                 type="hidden"
