@@ -61,7 +61,7 @@ const CustomToolbar = (props, getFlits) => {
     setFormData({
       ...formData,
       executionID: url.executionId,
-      resourceType: url.filters.replace("resource:", ""),
+      resourceType: url.filters ? url.filters.replace("resource:", "") : "",
       filters: props.getFlits,
     });
   }, []);
