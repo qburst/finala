@@ -5,6 +5,7 @@ import { executions } from "../reducers/executions.reducer";
 import { filters } from "../reducers/filters.reducer";
 import { flit } from "../reducers/flit.reducer";
 import { cols } from "../reducers/cols.reducer";
+import { searchMui } from "../reducers/searchMui.reducer";
 
 const rootReducer = (history) =>
   combineReducers({
@@ -13,6 +14,7 @@ const rootReducer = (history) =>
     filters,
     flit,
     cols,
+    searchMui,
     router: connectRouter(history),
   });
 
