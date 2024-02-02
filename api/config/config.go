@@ -43,6 +43,7 @@ type SendEmailInfo struct {
 	ResourceType string
 	Columns      []string
 	Filters      map[string]string
+	Search       string
 }
 
 // LoadAPI will load yaml file go struct

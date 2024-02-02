@@ -299,7 +299,7 @@ func (sm *StorageManager) GetExecutions(queryLimit int) ([]storage.Executions, e
 }
 
 // GetResources return resource data
-func (sm *StorageManager) GetResources(resourceType string, executionID string, filters map[string]string) ([]map[string]interface{}, error) {
+func (sm *StorageManager) GetResources(resourceType string, executionID string, filters map[string]string, search string) ([]map[string]interface{}, error) {
 
 	var resources []map[string]interface{}
 	dynamicMatchQuery := sm.getDynamicMatchQuery(filters, "or")
@@ -308,6 +308,11 @@ func (sm *StorageManager) GetResources(resourceType string, executionID string, 
 	ResourceNameQ := elastic.NewTermQuery("ResourceName", resourceType)
 	generalQ := elastic.NewBoolQuery()
 	generalQ = generalQ.Must(componentQ).Must(deploymentQ).Must(ResourceNameQ).Must(dynamicMatchQuery...)
+	if search != "" {
+		queryStringQuery := elastic.NewQueryStringQuery(fmt.Sprintf("*%s*", search))
+		matchAllQuery := elastic.NewMatchAllQuery()
+		generalQ = generalQ.Must(matchAllQuery, queryStringQuery)
+	}
 	searchResultTotalHits, err := sm.client.Search().
 		Query(generalQ).
 		Pretty(true).
