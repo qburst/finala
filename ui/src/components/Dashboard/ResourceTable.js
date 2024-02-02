@@ -58,6 +58,8 @@ const ResourceTable = ({
   getFlits,
   getCols,
   checkUncheckColumns,
+  getSearchText,
+  dispatchSearchText,
 }) => {
   const [headers, setHeaders] = useState([]);
   const [errorMessage, setErrorMessage] = useState(false);
@@ -217,6 +219,7 @@ const ResourceTable = ({
                 return "EMAIL";
               },
               onSearchChange: (searchText) => {
+                dispatchSearchText(searchText);
                 setTableFilters([
                   {
                     key: "search",
@@ -288,9 +291,11 @@ ResourceTable.propTypes = {
   isResourceTableLoading: PropTypes.bool,
   addFiltersObject: PropTypes.func,
   removeFiltersObject: PropTypes.func,
+  dispatchSearchText: PropTypes.func,
   getFlits: PropTypes.object,
   getCols: PropTypes.array,
   checkUncheckColumns: PropTypes.func,
+  getSearchText: PropTypes.string,
 };
 const mapStateToProps = (state) => ({
   resources: state.resources.resources,
@@ -299,10 +304,12 @@ const mapStateToProps = (state) => ({
   isResourceTableLoading: state.resources.isResourceTableLoading,
   getFlits: state.flit,
   getCols: state.cols,
+  getSearchText: state.searchMui,
 });
 const mapDispatchToProps = (dispatch) => ({
   addFiltersObject: (data) => dispatch({ type: "ADD_IN_OBJECT", data }),
   removeFiltersObject: (data) => dispatch({ type: "REMOVE_IN_OBJECT", data }),
+  dispatchSearchText: (data) => dispatch({ type: "ON_TEXT_ENTERED", data }),
   checkUncheckColumns: (data) =>
     dispatch({ type: "CHECK_UNCHECK_COLUMNS_CHECKBOX", data }),
 });

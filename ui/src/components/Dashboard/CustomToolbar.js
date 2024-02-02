@@ -122,6 +122,7 @@ const CustomToolbar = (props, getFlits) => {
     deleteCookie("toEmails");
     event.preventDefault();
     formData.filters = props.getFlits;
+    formData.search = props.getSearchText;
     setCookie("toEmails", formData.toEmails, 7); // Sets a cookie named 'cookieName' with value 'cookieValue' that expires in 7 days
     // const fullUrl = `http://127.0.0.1:8081/api/v1/send-report`;
     const fullUrl = `${http.baseURL}/api/v1/send-report`;
@@ -232,11 +233,13 @@ CustomToolbar.propTypes = {
   dbFilter: PropTypes.object,
   getFlits: PropTypes.object,
   getCols: PropTypes.array,
+  getSearchText: PropTypes.string,
 };
 
 const mapStateToProps = (state) => ({
   getFlits: state.flit,
   getCols: state.cols,
+  getSearchText: state.searchMui,
 });
 
 export default connect(mapStateToProps)(CustomToolbar);
