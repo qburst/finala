@@ -65,7 +65,7 @@ func (ms *MockStorage) GetExecutions(queryLimit int) ([]storage.Executions, erro
 	return response, nil
 }
 
-func (ms *MockStorage) GetResources(resourceType string, executionID string, filters map[string]string) ([]map[string]interface{}, error) {
+func (ms *MockStorage) GetResources(resourceType string, executionID string, filters map[string]string, search string) ([]map[string]interface{}, error) {
 
 	var response []map[string]interface{}
 

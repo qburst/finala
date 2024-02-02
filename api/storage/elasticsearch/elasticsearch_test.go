@@ -319,7 +319,7 @@ func TestGetResources(t *testing.T) {
 		t.Fatalf("unexpected error, got %v expected nil", err)
 	}
 
-	resourcesResponse, err := es.GetResources("aws_resource_name", "1234", map[string]string{"foo": "bar"})
+	resourcesResponse, err := es.GetResources("aws_resource_name", "1234", map[string]string{"foo": "bar"}, "1234")
 	if err != nil {
 		t.Fatalf("unexpected error, got %v expected nil", err)
 	}

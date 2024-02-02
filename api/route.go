@@ -69,6 +69,7 @@ func (server *Server) GetResourceData(resp http.ResponseWriter, req *http.Reques
 	queryErrs := url.Values{}
 	params := mux.Vars(req)
 	resourceType := params["type"]
+	var search string
 	filters := httpparameters.GetFilterQueryParamWithOutPrefix(queryParamFilterPrefix, queryParams)
 
 	executionID := req.URL.Query().Get("executionID")
@@ -81,7 +82,7 @@ func (server *Server) GetResourceData(resp http.ResponseWriter, req *http.Reques
 		return
 	}
 
-	response, err := server.storage.GetResources(resourceType, executionID, filters)
+	response, err := server.storage.GetResources(resourceType, executionID, filters, search)
 	if err != nil {
 		server.JSONWrite(resp, http.StatusInternalServerError, HttpErrorResponse{Error: err.Error()})
 		return
@@ -230,7 +231,7 @@ func (server *Server) SendReport(resp http.ResponseWriter, req *http.Request) {
 	//queryParams := req.URL.Query()
 	// filters := map[string]string{}
 	//filters := httpparameters.GetFilterQueryParamWithOutPrefix(queryParamFilterPrefix, queryParams)
-	responseData, err := server.storage.GetResources(resourceType, executionID, sendEmailInfo.Filters)
+	responseData, err := server.storage.GetResources(resourceType, executionID, sendEmailInfo.Filters, sendEmailInfo.Search)
 	if err != nil {
 		server.JSONWrite(resp, http.StatusInternalServerError, HttpErrorResponse{Error: err.Error()})
 		return
