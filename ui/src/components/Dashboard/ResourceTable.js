@@ -1,5 +1,5 @@
 import React, { Fragment, useEffect, useState } from "react";
-import { connect } from "react-redux";
+import { connect, useSelector } from "react-redux";
 import PropTypes from "prop-types";
 import numeral from "numeral";
 import MUIDataTable from "mui-datatables";
@@ -8,6 +8,7 @@ import TagsDialog from "../Dialog/Tags";
 import ReportProblemIcon from "@material-ui/icons/ReportProblem";
 import { getHistory } from "../../utils/History";
 import { useTableFilters } from "../../Hooks/TableHooks";
+import CustomToolbar from "./CustomToolbar";
 
 import {
   makeStyles,
@@ -52,6 +53,13 @@ const ResourceTable = ({
   currentResource,
   currentResourceData,
   isResourceTableLoading,
+  addFiltersObject,
+  removeFiltersObject,
+  getFlits,
+  getCols,
+  checkUncheckColumns,
+  getSearchText,
+  dispatchSearchText,
 }) => {
   const [headers, setHeaders] = useState([]);
   const [errorMessage, setErrorMessage] = useState(false);
@@ -129,15 +137,16 @@ const ResourceTable = ({
   /**
    * Detect resource data changed
    */
+  var filterNameArray;
   useEffect(() => {
     let headers = [];
     if (currentResourceData.length) {
       headers = getHeaderRow(currentResourceData[0]);
     }
-
+    filterNameArray = headers && headers.map((obj) => obj.name);
+    checkUncheckColumns(filterNameArray);
     setHeaders(headers);
   }, [currentResourceData]);
-
   /**
    * Detect if we have an error
    */
@@ -154,7 +163,7 @@ const ResourceTable = ({
       setHasError(false);
     }
   }, [currentResource, resources]);
-
+  const [flits, setFlits] = useState({ test: "only" });
   return (
     <Fragment>
       {!hasError && isResourceTableLoading && (
@@ -199,11 +208,18 @@ const ResourceTable = ({
 
       {!hasError && currentResourceData.length > 0 && !isResourceTableLoading && (
         <div id="resourcewrap">
+          {/* {"GET FLITES object :-" + JSON.stringify(getFlits, null, 2)}
+          {"GET cols array:-" + JSON.stringify(getCols, null, 2)} */}
           <MUIDataTable
             data={currentResourceData}
             columns={headers}
             options={Object.assign(tableOptions, {
+              customSearch: (searchQuery, currentRow, columns) => {
+                // You can return your custom icon component here
+                return "EMAIL";
+              },
               onSearchChange: (searchText) => {
+                dispatchSearchText(searchText);
                 setTableFilters([
                   {
                     key: "search",
@@ -226,6 +242,39 @@ const ResourceTable = ({
               downloadOptions: {
                 filename: `${currentResource}.csv`,
               },
+              customToolbar: () => {
+                return <CustomToolbar />;
+              },
+              onFilterChipClose: (index, removedFilter, filterList) => {
+                removeFiltersObject({
+                  column: "Data." + removedFilter,
+                  index: index,
+                  filterList: filterList,
+                });
+              },
+              onFilterChange: (column, filterList, type, index) => {
+                addFiltersObject({
+                  ["Data." + column]: String(filterList[index][0]),
+                });
+              },
+              onColumnViewChange: (changedColumn, action) => {
+                // Callback when the columns are shown or hidden
+                var filterNameArrayNew = getCols;
+                if (action === "remove") {
+                  const index = filterNameArrayNew.indexOf(changedColumn);
+                  if (index > -1) {
+                    // only splice array when item is found
+                    filterNameArrayNew.splice(index, 1); // 2nd parameter means remove one item only
+                  }
+                  // setSelectedColumns(selectedColumns.filter((col) => col !== changedColumn));
+                } else {
+                  if (filterNameArrayNew.indexOf(changedColumn) === -1) {
+                    filterNameArrayNew.push(changedColumn);
+                  }
+                  // setSelectedColumns([...selectedColumns, changedColumn]);
+                }
+                checkUncheckColumns(filterNameArrayNew);
+              },
             })}
           />
         </div>
@@ -240,14 +289,28 @@ ResourceTable.propTypes = {
   resources: PropTypes.object,
   currentResourceData: PropTypes.array,
   isResourceTableLoading: PropTypes.bool,
+  addFiltersObject: PropTypes.func,
+  removeFiltersObject: PropTypes.func,
+  dispatchSearchText: PropTypes.func,
+  getFlits: PropTypes.object,
+  getCols: PropTypes.array,
+  checkUncheckColumns: PropTypes.func,
+  getSearchText: PropTypes.string,
 };
-
 const mapStateToProps = (state) => ({
   resources: state.resources.resources,
   currentResourceData: state.resources.currentResourceData,
   currentResource: state.resources.currentResource,
   isResourceTableLoading: state.resources.isResourceTableLoading,
+  getFlits: state.flit,
+  getCols: state.cols,
+  getSearchText: state.searchMui,
 });
-const mapDispatchToProps = () => ({});
-
+const mapDispatchToProps = (dispatch) => ({
+  addFiltersObject: (data) => dispatch({ type: "ADD_IN_OBJECT", data }),
+  removeFiltersObject: (data) => dispatch({ type: "REMOVE_IN_OBJECT", data }),
+  dispatchSearchText: (data) => dispatch({ type: "ON_TEXT_ENTERED", data }),
+  checkUncheckColumns: (data) =>
+    dispatch({ type: "CHECK_UNCHECK_COLUMNS_CHECKBOX", data }),
+});
 export default connect(mapStateToProps, mapDispatchToProps)(ResourceTable);

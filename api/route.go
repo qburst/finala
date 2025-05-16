@@ -2,6 +2,8 @@ package api
 
 import (
 	"encoding/json"
+	"finala/api/config"
+	"finala/api/email_utility"
 	"finala/api/httpparameters"
 	"finala/api/storage"
 	"io/ioutil"
@@ -25,6 +27,12 @@ type DetectEventsInfo struct {
 	EventType    string
 	EventTime    int64
 	Data         interface{}
+}
+
+type ReportAPIResponse struct {
+	Message string     `json:"message"`
+	Status  int        `json:"status"`
+	Data    [][]string `json:"data"`
 }
 
 // GetSummary return list of summary executions
@@ -61,6 +69,7 @@ func (server *Server) GetResourceData(resp http.ResponseWriter, req *http.Reques
 	queryErrs := url.Values{}
 	params := mux.Vars(req)
 	resourceType := params["type"]
+	var search string
 	filters := httpparameters.GetFilterQueryParamWithOutPrefix(queryParamFilterPrefix, queryParams)
 
 	executionID := req.URL.Query().Get("executionID")
@@ -73,7 +82,7 @@ func (server *Server) GetResourceData(resp http.ResponseWriter, req *http.Reques
 		return
 	}
 
-	response, err := server.storage.GetResources(resourceType, executionID, filters)
+	response, err := server.storage.GetResources(resourceType, executionID, filters, search)
 	if err != nil {
 		server.JSONWrite(resp, http.StatusInternalServerError, HttpErrorResponse{Error: err.Error()})
 		return
@@ -185,4 +194,71 @@ func (server *Server) VersionHandler(resp http.ResponseWriter, req *http.Request
 		return
 	}
 	server.JSONWrite(resp, http.StatusOK, version)
+}
+
+// send pdf report via mail
+func (server *Server) SendReport(resp http.ResponseWriter, req *http.Request) {
+
+	buf, bodyErr := ioutil.ReadAll(req.Body)
+
+	if bodyErr != nil {
+		server.JSONWrite(resp, http.StatusBadRequest, HttpErrorResponse{Error: bodyErr.Error()})
+		return
+	}
+
+	var sendEmailInfo config.SendEmailInfo
+	err := json.Unmarshal(buf, &sendEmailInfo)
+	if err != nil {
+		server.JSONWrite(resp, http.StatusBadRequest, HttpErrorResponse{Error: err.Error()})
+		return
+	}
+
+	toEmails := sendEmailInfo.ToEmails
+	executionID := sendEmailInfo.ExecutionID
+	resourceType := sendEmailInfo.ResourceType
+
+	if executionID == "" {
+		server.JSONWrite(resp, http.StatusOK, "Execution Id is mandatory")
+		return
+	}
+	if resourceType == "" {
+		server.JSONWrite(resp, http.StatusOK, "Resource Type is mandatory")
+		return
+	}
+	responseMsg := "Email sent successfully"
+	statusCode := 200
+
+	//queryParams := req.URL.Query()
+	// filters := map[string]string{}
+	//filters := httpparameters.GetFilterQueryParamWithOutPrefix(queryParamFilterPrefix, queryParams)
+	responseData, err := server.storage.GetResources(resourceType, executionID, sendEmailInfo.Filters, sendEmailInfo.Search)
+	if err != nil {
+		server.JSONWrite(resp, http.StatusInternalServerError, HttpErrorResponse{Error: err.Error()})
+		return
+	}
+
+	if len(responseData) == 0 {
+		server.JSONWrite(resp, http.StatusOK, ReportAPIResponse{Message: "No data", Status: statusCode})
+		return
+	}
+
+	pdfFileName := "Finala_report.pdf"
+	pdfContent := "A Comprehensive Analysis of Efficiency Factors and Recommendations for Improvement"
+	email_utility.CreatePDF(pdfFileName, pdfContent, responseData, sendEmailInfo)
+	emailConfig, err := config.LoadAPI("/etc/finala/config.yaml")
+	username := emailConfig.SMTPConf.Username
+	password := emailConfig.SMTPConf.Password
+	smtpServer := emailConfig.SMTPConf.SMTPServer
+	smtpPort, _ := strconv.Atoi(emailConfig.SMTPConf.SMTPPort)
+	subject := "Finala Report"
+	body := "<p>Kindly review the attached PDF for the comprehensive report on Finala.</p>"
+	sender := email_utility.NewSMTPSender(smtpServer, smtpPort, username, password)
+	err = sender.Send(toEmails, subject, body, pdfFileName)
+	if err != nil {
+		responseMsg = "Error in sending mail"
+		statusCode = 500
+		log.WithFields(log.Fields{"events": len("test")}).Info("---------", err)
+	}
+
+	server.JSONWrite(resp, http.StatusOK, ReportAPIResponse{Message: responseMsg, Status: statusCode})
 }
