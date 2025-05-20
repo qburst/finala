@@ -6,7 +6,7 @@ import (
 	"finala/api"
 	"finala/api/storage"
 	"finala/api/testutils"
-	"io/ioutil"
+	"io"
 	"log"
 	"net/http"
 	"net/http/httptest"
@@ -27,7 +27,6 @@ func MockServer() (*api.Server, *testutils.MockStorage) {
 func TestInvalidRoue(t *testing.T) {
 
 	ms, _ := MockServer()
-	ms.BindEndpoints()
 	ms.Serve()
 
 	rr := httptest.NewRecorder()
@@ -39,7 +38,7 @@ func TestInvalidRoue(t *testing.T) {
 	if rr.Code != http.StatusNotFound {
 		t.Fatalf("handler returned wrong status code: got %v want %v", rr.Code, http.StatusOK)
 	}
-	body, err := ioutil.ReadAll(rr.Body)
+	body, err := io.ReadAll(rr.Body)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -55,7 +54,6 @@ func TestInvalidRoue(t *testing.T) {
 
 func TestHealthRequest(t *testing.T) {
 	ms, _ := MockServer()
-	ms.BindEndpoints()
 	ms.Serve()
 
 	rr := httptest.NewRecorder()
@@ -67,7 +65,7 @@ func TestHealthRequest(t *testing.T) {
 	if rr.Code != http.StatusOK {
 		t.Fatalf("handler returned wrong status code: got %v want %v", rr.Code, http.StatusOK)
 	}
-	body, err := ioutil.ReadAll(rr.Body)
+	body, err := io.ReadAll(rr.Body)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -85,7 +83,6 @@ func TestHealthRequest(t *testing.T) {
 
 func TestGetSummary(t *testing.T) {
 	ms, _ := MockServer()
-	ms.BindEndpoints()
 	ms.Serve()
 
 	testCases := []struct {
@@ -112,7 +109,7 @@ func TestGetSummary(t *testing.T) {
 			}
 
 			if test.expectedStatusCode == http.StatusOK {
-				body, err := ioutil.ReadAll(rr.Body)
+				body, err := io.ReadAll(rr.Body)
 				if err != nil {
 					t.Fatal(err)
 				}
@@ -139,7 +136,6 @@ func TestGetSummary(t *testing.T) {
 
 func TestGetResourcesData(t *testing.T) {
 	ms, _ := MockServer()
-	ms.BindEndpoints()
 	ms.Serve()
 
 	testCases := []struct {
@@ -167,7 +163,7 @@ func TestGetResourcesData(t *testing.T) {
 
 			if test.expectedStatusCode == http.StatusOK {
 
-				body, err := ioutil.ReadAll(rr.Body)
+				body, err := io.ReadAll(rr.Body)
 				if err != nil {
 					t.Fatal(err)
 				}
@@ -194,7 +190,6 @@ func TestGetResourcesData(t *testing.T) {
 }
 func TestGetExecutions(t *testing.T) {
 	ms, _ := MockServer()
-	ms.BindEndpoints()
 	ms.Serve()
 
 	testCases := []struct {
@@ -218,7 +213,7 @@ func TestGetExecutions(t *testing.T) {
 				t.Fatalf("handler returned wrong status code: got %v want %v", rr.Code, http.StatusOK)
 			}
 
-			body, err := ioutil.ReadAll(rr.Body)
+			body, err := io.ReadAll(rr.Body)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -239,7 +234,6 @@ func TestGetExecutions(t *testing.T) {
 }
 func TestSave(t *testing.T) {
 	ms, mockStorage := MockServer()
-	ms.BindEndpoints()
 	ms.Serve()
 
 	type tempBodyData struct {
@@ -295,7 +289,6 @@ func TestSave(t *testing.T) {
 
 func TestGetExecutionTags(t *testing.T) {
 	ms, _ := MockServer()
-	ms.BindEndpoints()
 	ms.Serve()
 
 	testCases := []struct {
@@ -320,7 +313,7 @@ func TestGetExecutionTags(t *testing.T) {
 				t.Fatalf("handler returned wrong status code: got %v want %v", rr.Code, http.StatusOK)
 			}
 			if test.expectedStatusCode == http.StatusOK {
-				body, err := ioutil.ReadAll(rr.Body)
+				body, err := io.ReadAll(rr.Body)
 				if err != nil {
 					t.Fatal(err)
 				}
@@ -348,7 +341,6 @@ func TestGetExecutionTags(t *testing.T) {
 
 func TestGetResourceTrends(t *testing.T) {
 	ms, _ := MockServer()
-	ms.BindEndpoints()
 	ms.Serve()
 
 	testCases := []struct {
@@ -376,7 +368,7 @@ func TestGetResourceTrends(t *testing.T) {
 
 			if test.expectedStatusCode == http.StatusOK {
 
-				body, err := ioutil.ReadAll(rr.Body)
+				body, err := io.ReadAll(rr.Body)
 				if err != nil {
 					t.Fatal(err)
 				}
@@ -404,7 +396,6 @@ func TestGetResourceTrends(t *testing.T) {
 
 func TestVersion(t *testing.T) {
 	ms, _ := MockServer()
-	ms.BindEndpoints()
 	ms.Serve()
 
 	testCases := []struct {
@@ -431,7 +422,7 @@ func TestVersion(t *testing.T) {
 				t.Fatalf("handler returned wrong status code: got %v want %v", rr.Code, http.StatusOK)
 			}
 			if test.expectedStatusCode == http.StatusOK {
-				body, err := ioutil.ReadAll(rr.Body)
+				body, err := io.ReadAll(rr.Body)
 				if err != nil {
 					t.Fatal(err)
 				}

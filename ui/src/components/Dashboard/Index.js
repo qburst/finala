@@ -1,6 +1,7 @@
 import React, { Fragment } from "react";
 import { connect } from "react-redux";
-import { makeStyles } from "@material-ui/core/styles";
+import makeStyles from "@mui/styles/makeStyles";
+import { useNavigate } from "react-router-dom";
 import { setHistory } from "../../utils/History";
 
 import PropTypes from "prop-types";
@@ -12,7 +13,7 @@ import ResourcesList from "./ResourcesList";
 import ResourceTable from "./ResourceTable";
 import ExecutionIndex from "../Executions/Index";
 import Logo from "../Logo";
-import { Grid, Box } from "@material-ui/core";
+import { Grid, Box } from "@mui/material";
 
 const useStyles = makeStyles(() => ({
   root: {
@@ -41,16 +42,17 @@ const DashboardIndex = ({
   filters,
 }) => {
   const classes = useStyles();
+  const navigate = useNavigate();
   /**
    * Will clear selected filter and show main page
    */
   const gotoHome = () => {
-    const updatedFilters = filters.filter(
-      (filter) => filter.id.substr(0, 8) !== "resource"
-    );
+    const updatedFilters = filters.filter((filter) => {
+      return filter.id.substr(0, 8) !== "resource";
+    });
     setResource(null);
     setFilters(updatedFilters);
-    setHistory({ filters: updatedFilters });
+    setHistory(navigate, { filters: updatedFilters });
   };
 
   return (

@@ -2,10 +2,11 @@ import React, { Fragment } from "react";
 import Moment from "moment";
 import { connect } from "react-redux";
 import PropTypes from "prop-types";
+import { useNavigate } from "react-router-dom";
 import { setHistory } from "../../utils/History";
 import { ucfirstDirective } from "../../utils/Title";
-import { Select, MenuItem } from "@material-ui/core";
-import { makeStyles } from "@material-ui/core/styles";
+import { Select, MenuItem } from "@mui/material";
+import makeStyles from "@mui/styles/makeStyles";
 
 const useStyles = makeStyles(() => ({
   selector: {
@@ -35,6 +36,7 @@ const ExecutionsIndex = ({
   setCurrentExecution,
 }) => {
   const classes = useStyles();
+  const navigate = useNavigate();
 
   /**
    *
@@ -43,7 +45,7 @@ const ExecutionsIndex = ({
    */
   const updateCurrentExecution = (executionId) => {
     setCurrentExecution(executionId);
-    setHistory({ executionId });
+    setHistory(navigate, { executionId });
   };
 
   return (

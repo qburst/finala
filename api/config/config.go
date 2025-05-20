@@ -1,7 +1,6 @@
 package config
 
 import (
-	"io/ioutil"
 	"os"
 	"strings"
 
@@ -57,7 +56,7 @@ type SendEmailInfo struct {
 // LoadAPI will load yaml file go struct
 func LoadAPI(location string) (APIConfig, error) {
 	config := APIConfig{}
-	data, err := ioutil.ReadFile(location)
+	data, err := os.ReadFile(location)
 	if err != nil {
 		log.Errorf("Could not parse configuration file: %s", err)
 		return config, err
@@ -75,7 +74,7 @@ func LoadAPI(location string) (APIConfig, error) {
 		}).Info("override storage endpoint")
 		config.Storage.Meilisearch.Endpoints = strings.Split(overrideStorageEndpoint, ",")
 	}
-	
+
 	overrideStoragePassword := os.Getenv("OVERRIDE_STORAGE_PASSWORD")
 	if overrideStoragePassword != "" {
 		log.WithFields(log.Fields{

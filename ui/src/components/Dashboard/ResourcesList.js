@@ -2,10 +2,11 @@ import React, { Fragment } from "react";
 import { connect } from "react-redux";
 import PropTypes from "prop-types";
 import colors from "./colors.json";
-import { makeStyles } from "@material-ui/core/styles";
+import makeStyles from "@mui/styles/makeStyles";
+import { useNavigate } from "react-router-dom";
 import { setHistory } from "../../utils/History";
 
-import { Box, Chip } from "@material-ui/core";
+import { Box, Chip } from "@mui/material";
 import { titleDirective } from "../../utils/Title";
 import { MoneyDirective } from "../../utils/Money";
 
@@ -16,10 +17,13 @@ const useStyles = makeStyles(() => ({
   resource_chips: {
     fontWeight: "bold",
     fontFamily: "Arial !important",
-    margin: "5px",
-    borderRadius: "1px",
-    backgroundColor: "#ffffff",
-    borderLeft: "5px solid #ffffff",
+    margin: "24px 12px",
+    borderRadius: "16px",
+    backgroundColor: "#FAFAFA",
+    borderLeftWidth: "5px",
+    borderLeftStyle: "solid",
+    borderBottomWidth: "2px",
+    borderBottomStyle: "solid",
     fontSize: "14px",
   },
 }));
@@ -32,6 +36,7 @@ const useStyles = makeStyles(() => ({
  */
 const ResourcesList = ({ resources, filters, addFilter, setResource }) => {
   const classes = useStyles();
+  const navigate = useNavigate();
   const resourcesList = Object.values(resources)
     .sort((a, b) => {
       // Primary sort: TotalSpent descending
@@ -77,7 +82,7 @@ const ResourcesList = ({ resources, filters, addFilter, setResource }) => {
     setResource(resource.ResourceName);
     addFilter(filter);
 
-    setHistory({
+    setHistory(navigate, {
       filters: filters,
     });
   };
@@ -87,16 +92,22 @@ const ResourcesList = ({ resources, filters, addFilter, setResource }) => {
       {resourcesList.length > 0 && (
         <Box mb={3}>
           <h4 className={classes.title}>Resources:</h4>
-          {resourcesList.map((resource, i) => (
-            <Chip
-              className={classes.resource_chips}
-              onClick={() => setSelectedResource(resource)}
-              style={{ borderLeftColor: colors[i].hex }}
-              ma={2}
-              label={resource.title}
-              key={i}
-            />
-          ))}
+          {resourcesList.map((resource, i) => {
+            const chipColor =
+              colors[i] && colors[i].hex ? colors[i].hex : "#cccccc";
+            return (
+              <Chip
+                key={i}
+                className={classes.resource_chips}
+                label={resource.title}
+                onClick={() => setSelectedResource(resource)}
+                style={{
+                  borderLeft: `5px solid ${chipColor}`,
+                  borderBottom: `2px solid ${chipColor}`,
+                }}
+              />
+            );
+          })}
         </Box>
       )}
     </Fragment>
