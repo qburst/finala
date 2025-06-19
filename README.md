@@ -1,138 +1,103 @@
-# Finala ![Lint](https://github.com/similarweb/finala/workflows/Lint/badge.svg) ![Fmt](https://github.com/similarweb/finala/workflows/Fmt/badge.svg) [![Go Report Card](https://goreportcard.com/badge/github.com/similarweb/finala)](https://goreportcard.com/report/github.com/similarweb/finala) [![Gitter](https://badges.gitter.im/similarweb-finala/community.svg)](https://gitter.im/similarweb-finala/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
+# Finala
 
-**Note**: The `master` branch represents the latest developed version and it may be in an *unstable or even broken*.
+[![Lint](https://github.com/qburst/finala/workflows/Lint/badge.svg)](https://github.com/qburst/finala/actions)
+[![Fmt](https://github.com/qburst/finala/workflows/Fmt/badge.svg)](https://github.com/qburst/finala/actions)
+[![Go Report Card](https://goreportcard.com/badge/github.com/qburst/finala)](https://goreportcard.com/report/github.com/qburst/finala)
 
-In order to get the latest stable version please use the [releases pages](https://github.com/similarweb/finala/releases).
-
-![alt Logo](https://raw.githubusercontent.com/similarweb/finala/master/docs/images/main-logo.png)
-![Finala Processing](https://raw.githubusercontent.com/similarweb/finala/master/docs/images/finala.png)
-
-----
+![Finala Logo](docs/images/main-logo.png)
 
 ## Overview
 
-Finala is an open-source resource cloud scanner that analyzes, discloses, presents and notifies about wasteful and unused resources.
+Finala is an open-source cloud resource scanner that analyzes, discloses, presents, and notifies about wasteful and unused resources across your cloud infrastructure. It helps organizations achieve two primary objectives: **cost optimization** and **unused resource detection**.
 
-With Finala you can achieve 2 main objectives: **Cost saving & Unused resources detection**.
+Finala provides comprehensive visibility into your cloud spending by identifying resources that are either underutilized or completely unused, enabling you to make informed decisions about resource optimization and cost reduction.
 
 ## Features
 
-* **YAML Definitions**: Resources definitions are described using a high-level YAML configuration syntax. This allows Finala consumers easily tweak the configuration to help it understand their infrastructure, spending habits and normal usage.
-* **1 Click Deployment**: Finala can be deployed via Docker compose or a [Helm chart](https://github.com/similarweb/finala-helm).
-* **Graphical user interface**: Users can easily explore and investigate unused or unutilized resources in your cloud provider.
-* **Resource Filtering by Cloud Provider Tags**: Users can filter unused resources by just providing the tags you are using in your cloud provider.
-* **Schedule Pro Active Notifications**: Finala has the ability to configure scheduled based notifications to a user or a group.
+### 🔍 **Resource Discovery & Analysis**
+- **Cloud Provider Support**: Currently supports AWS with extensible architecture designed for multi-cloud expansion
+- **Comprehensive Resource Coverage**: Analyzes 18+ AWS services including EC2, RDS, Lambda, DynamoDB, and more
+- **Intelligent Detection**: Uses CloudWatch metrics and custom rules to identify underutilized resources
+- **Cost Impact Analysis**: Calculates potential cost savings for each identified resource
 
-## Supported Services
+### 🎯 **Smart Detection Engine**
+- **YAML-Based Configuration**: Easy-to-understand resource definitions using high-level YAML syntax
+- **Customizable Rules**: Tailor detection criteria to match your infrastructure patterns and usage habits
+- **Metric-Based Analysis**: Leverages CloudWatch metrics with configurable thresholds and time periods
+- **Formula Support**: Advanced mathematical expressions for complex resource evaluation
 
-### Finala's Definitions
+### 🖥️ **Modern Web Interface**
+- **React-Based UI**: Modern, responsive web interface built with React 18 and Material-UI v5
+- **Real-Time Dashboard**: Interactive charts and visualizations of resource utilization
+- **Advanced Filtering**: Filter resources by tags, regions, services, and cost thresholds
+- **Search Capabilities**: Powered by Meilisearch for fast, relevant resource discovery
 
-* **Potential Cost Optimization** - is the price you can save for untilized resources in your infrastructure
-* **Unused Resource** - are resources which don't necessarily cost money and can be removed.
+### 🔐 **Security & Authentication**
+- **JWT-Based Authentication**: Secure login system with token-based authentication
+- **Protected Routes**: Role-based access control for sensitive resource information
+- **Auto-Generated Credentials**: Secure default setup with customizable authentication
 
-### AWS
+### 📊 **Reporting & Notifications**
+- **Scheduled Notifications**: Configure automated alerts via Slack or email
+- **Tag-Based Filtering**: Group and notify based on resource tags and cost thresholds
+- **Customizable Reports**: Generate reports based on specific criteria and time periods
 
-Resource            | Potential Cost Optimization| Unused Resource         |
---------------------| ---------------------------|-------------------------|
-API Gateway         | :heavy_minus_sign:         | :ballot_box_with_check:
-DocumentDB          | :ballot_box_with_check:    | :heavy_minus_sign:
-DynamoDB            | :ballot_box_with_check:    | :heavy_minus_sign:
-EC2 ALB,NLB         | :ballot_box_with_check:    | :heavy_minus_sign:
-EC2 Elastic IPs     | :ballot_box_with_check:    | :heavy_minus_sign:
-EC2 ELB             | :ballot_box_with_check:    | :heavy_minus_sign:
-EC2 NAT Gateways    | :ballot_box_with_check:    | :heavy_minus_sign:
-EC2 Instances       | :ballot_box_with_check:    | :heavy_minus_sign:
-EC2 Volumes         | :ballot_box_with_check:    | :heavy_minus_sign:
-ElasticCache        | :ballot_box_with_check:    | :heavy_minus_sign:
-ElasticSearch       | :ballot_box_with_check:    | :heavy_minus_sign:
-IAM User            | :heavy_minus_sign:         | :ballot_box_with_check:
-Kinesis             | :ballot_box_with_check:    | :heavy_minus_sign:
-Lambda              | :heavy_minus_sign:         | :ballot_box_with_check:
-Neptune             | :ballot_box_with_check:    | :heavy_minus_sign:
-RDS                 | :ballot_box_with_check:    | :heavy_minus_sign:
-RedShift            | :ballot_box_with_check:    | :heavy_minus_sign:
+### 🚀 **Easy Deployment**
+- **Docker Compose**: One-command deployment with pre-configured services
+- **Production Ready**: Optimized Docker images for both development and production
+- **Scalable Architecture**: Microservices-based design for horizontal scaling
 
-## Recent Project Upgrades
+## Supported AWS Services
 
-This project has recently undergone significant upgrades to modernize its stack and improve its core functionalities. Key changes include:
+| Service | Cost Optimization | Unused Detection |
+|---------|------------------|------------------|
+| API Gateway | ❌ | ✅ |
+| DocumentDB | ✅ | ❌ |
+| DynamoDB | ✅ | ❌ |
+| EC2 ALB/NLB | ✅ | ❌ |
+| EC2 Elastic IPs | ✅ | ❌ |
+| EC2 ELB | ✅ | ❌ |
+| EC2 NAT Gateways | ✅ | ❌ |
+| EC2 Instances | ✅ | ❌ |
+| EC2 Volumes | ✅ | ❌ |
+| ElastiCache | ✅ | ❌ |
+| Elasticsearch | ✅ | ❌ |
+| IAM Users | ❌ | ✅ |
+| Kinesis | ✅ | ❌ |
+| Lambda | ❌ | ✅ |
+| Neptune | ✅ | ❌ |
+| RDS | ✅ | ❌ |
+| Redshift | ✅ | ❌ |
 
-*   **Search Backend Modernization**: Migrated from Elasticsearch to Meilisearch for an improved search experience.
-*   **Go Version Update**: Upgraded to the latest Go version along with its dependencies, ensuring better performance and security.
-*   **Frontend Overhaul**:
-    *   Upgraded React to v18.
-    *   Updated Material-UI (MUI) to v5.
-    *   Migrated to React Router v6.
-    *   Upgraded Webpack to v5 and updated related loaders and plugins for a more efficient build process.
-*   **Authentication & Security**:
-    *   Added secure login functionality with JWT-based authentication.
-    *   Implemented protected routes for authenticated users.
-    *   Enhanced API security with authentication middleware.
-*   **Containerization Improvements**: Updated Dockerfiles for both development and production environments, optimizing build layers and improving security by using non-root users and newer base images.
-*   **General Dependency Updates**: Various other packages and dependencies across the project have been updated to their latest stable versions.
+## Documentation
 
-## Authentication
+- **[Quick Start Guide](docs/quick-start.md)** - Get Finala up and running quickly
+- **[Installation Guide](docs/installation.md)** - Comprehensive installation scenarios
+- **[Configuration Guide](docs/configuration.md)** - Complete configuration reference
+- **[Architecture Overview](docs/architecture.md)** - System design and components
+- **[AWS Setup](docs/aws-setup.md)** - AWS permissions and configuration
+- **[API Reference](docs/api-reference.md)** - REST API documentation
+- **[Troubleshooting](docs/troubleshooting.md)** - Common issues and solutions
 
-Finala now features a secure authentication system to protect access to your cloud resource information.
+## Screenshots
+![Finala Dashboard](docs/images/dashboard-metrics.png)
 
-### Login System
+## License
 
-* **User Interface**: A clean, modern login page that matches Finala's visual identity.
-* **API Authentication**: Backend API routes are now protected with JWT authentication.
-* **Protected Routes**: Access to resource data requires successful authentication.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-### Configuration
+## Recent Updates
 
-Authentication credentials are configured in `/etc/finala/config.yaml` under the `auth` section:
+### v2.0+ Major Improvements
+- **Search Backend**: Migrated from Elasticsearch to Meilisearch for improved performance
+- **Go Version**: Upgraded to latest Go version with enhanced security
+- **Frontend Modernization**: React 18, Material-UI v5, React Router v6
+- **Authentication**: Added JWT-based authentication system
+- **Containerization**: Optimized Docker images and build processes
+- **Dependencies**: Updated all packages to latest stable versions
 
-```yaml
-auth:
-  username: admin
-  password: your-secure-password
-```
+## Support
 
-### Auto-Generated Credentials
-
-If the configuration file is missing, incomplete, or authentication credentials are not set:
-
-1. The system will use `admin` as the default username.
-2. A secure random password will be automatically generated at startup.
-3. The generated password will be displayed in the startup logs for initial access.
-4. The configuration will be written to `/etc/finala/config.yaml` for future reference.
-
-Example startup log with generated credentials:
-```
-INFO: Generated random password for admin user: XyzT7q2PwC8rLzV5
-INFO: To use custom credentials, set auth.username and auth.password in /etc/finala/config.yaml
-```
-
-For security in production environments, it is recommended to set your own credentials in the configuration file.
-
-## QuickStart
-
-Follow the [quick start](https://finala.io/docs/getting-started/quick-start) in our documentation to get familiar with Finala.
-
-
-## Web User Interface
-
-You can access Finala's user interface via http://localhost:8080/  (After you have finished with the quick start guide)
-![dashboard](https://raw.githubusercontent.com/similarweb/finala/master/docs/images/main-dashboard.png)
-
-## Installation
-
-Please refer to [Installation instructions](https://finala.io/docs/installation/getting-started).
-
-## Documentation & Guides
-
-Documentation is available on the Finala website [here](https://finala.io/).
-
-## Community, discussion, contribution, and support
-
-You can reach the Finala community and developers via the following channels:
-
-* [Gitter Community](https://gitter.im/similarweb-finala/community):
-  * [finala-users](https://gitter.im/similarweb-finala/users)
-  * [finala-developers](https://gitter.im/similarweb-finala/developers)
-
-## Contributing
-
-Thank you for your interest in contributing! Please refer to [Contribution guidelines](https://finala.io/docs/contributing/submitting-pr) for guidance.
+- **Issues**: Report bugs and request features via [GitHub Issues](https://github.com/qburst/finala/issues)
+- **Discussions**: Join community discussions in [GitHub Discussions](https://github.com/qburst/finala/discussions)
+- **Security**: Report security vulnerabilities via [GitHub Security](https://github.com/qburst/finala/security/advisories) 
