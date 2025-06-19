@@ -10,7 +10,13 @@ import { getHistory } from "../../utils/History";
 import { useTableFilters } from "../../Hooks/TableHooks";
 import CustomToolbar from "./CustomToolbar";
 
-import { Card, CardContent, LinearProgress } from "@mui/material";
+import {
+  Card,
+  CardContent,
+  LinearProgress,
+  Box,
+  Typography,
+} from "@mui/material";
 
 import makeStyles from "@mui/styles/makeStyles";
 
@@ -36,6 +42,37 @@ const useStyles = makeStyles(() => ({
   },
   progress: {
     margin: "30px",
+  },
+  categoryBanner: {
+    backgroundColor: "#f8fafc",
+    border: "1px solid #e2e8f0",
+    borderRadius: "6px",
+    padding: "12px 16px",
+    marginBottom: "16px",
+    display: "flex",
+    alignItems: "center",
+    gap: "8px",
+    fontWeight: "500",
+    fontSize: "0.9rem",
+    transition: "background-color 0.2s ease",
+  },
+  costSavingBanner: {
+    borderLeftColor: "#d69e2e",
+    borderLeftWidth: "4px",
+    color: "#975a16",
+    backgroundColor: "#fffbeb",
+    "&:hover": {
+      backgroundColor: "#fef3c7",
+    },
+  },
+  unusedBanner: {
+    borderLeftColor: "#38a169",
+    borderLeftWidth: "4px", 
+    color: "#22543d",
+    backgroundColor: "#f0fff4",
+    "&:hover": {
+      backgroundColor: "#c6f6d5",
+    },
   },
 }));
 
@@ -205,6 +242,23 @@ const ResourceTable = ({
         currentResourceData.length > 0 &&
         !isResourceTableLoading && (
           <div id="resourcewrap">
+            {/* Category Indicator */}
+            {currentResource && resources[currentResource] && (
+              <Box
+                className={`${classes.categoryBanner} ${
+                  resources[currentResource].TotalSpent > 0 
+                    ? classes.costSavingBanner 
+                    : classes.unusedBanner
+                }`}
+              >
+                <Typography>
+                  {resources[currentResource].TotalSpent > 0 
+                    ? "💰 Potential Cost Saving Resource"
+                    : "🗑️ Unused Resource"
+                  }
+                </Typography>
+              </Box>
+            )}
             {/* {"GET FLITES object :-" + JSON.stringify(getFlits, null, 2)}
           {"GET cols array:-" + JSON.stringify(getCols, null, 2)} */}
             <MUIDataTable

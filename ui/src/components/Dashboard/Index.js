@@ -4,6 +4,7 @@ import makeStyles from "@mui/styles/makeStyles";
 import { useNavigate } from "react-router-dom";
 import { setHistory } from "../../utils/History";
 import { Button } from "@mui/material";
+import { Card, CardContent, Typography } from "@mui/material";
 
 import PropTypes from "prop-types";
 import FilterBar from "./FilterBar";
@@ -28,6 +29,59 @@ const useStyles = makeStyles(() => ({
   },
   selectorGrid: {
     textAlign: "right",
+  },
+  overviewCard: {
+    backgroundColor: "#fbfcfd",
+    border: "1px solid #e1e5e9",
+    borderRadius: "8px",
+    boxShadow: "0 1px 3px rgba(0, 0, 0, 0.05)",
+    marginBottom: "24px",
+    transition: "box-shadow 0.2s ease",
+    "&:hover": {
+      boxShadow: "0 4px 12px rgba(0, 0, 0, 0.08)",
+    },
+  },
+  overviewTitle: {
+    fontFamily: "MuseoModerno",
+    fontWeight: "600",
+    fontSize: "1.4rem",
+    color: "#1a202c",
+    marginBottom: "12px",
+    display: "flex",
+    alignItems: "center",
+    gap: "8px",
+  },
+  overviewDescription: {
+    color: "#4a5568",
+    lineHeight: "1.6",
+    fontSize: "0.95rem",
+  },
+  categoryLabel: {
+    fontWeight: "600",
+    fontSize: "0.9rem",
+  },
+  costSavingLabel: {
+    color: "#d69e2e",
+  },
+  unusedLabel: {
+    color: "#38a169",
+  },
+  logoutButton: {
+    backgroundColor: "#fff",
+    color: "#e53e3e",
+    border: "1px solid #e53e3e",
+    fontWeight: "500",
+    borderRadius: "6px",
+    padding: "8px 16px",
+    textTransform: "none",
+    fontSize: "0.9rem",
+    transition: "all 0.2s ease",
+    "&:hover": {
+      backgroundColor: "#e53e3e",
+      color: "#fff",
+      transform: "translateY(-1px)",
+      boxShadow: "0 2px 8px rgba(229, 62, 62, 0.25)",
+    },
   },
 }));
 
@@ -74,14 +128,7 @@ const DashboardIndex = ({
                   localStorage.removeItem("finalaAuthToken");
                   navigate("/login");
                 }}
-                sx={{
-                  color: "#DC143C",
-                  borderColor: "#DC143C",
-                  "&:hover": {
-                    borderColor: "#B01030",
-                    backgroundColor: "rgba(220, 20, 60, 0.04)",
-                  },
-                }}
+                className={classes.logoutButton}
               >
                 Logout
               </Button>
@@ -90,6 +137,8 @@ const DashboardIndex = ({
           </Grid>
         </Grid>
       </Box>
+
+
 
       <FilterBar />
       <StatisticsBar />
