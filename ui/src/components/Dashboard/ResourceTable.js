@@ -1,21 +1,24 @@
 import React, { Fragment, useEffect, useState } from "react";
-import { connect, useSelector } from "react-redux";
+import { connect } from "react-redux";
 import PropTypes from "prop-types";
 import numeral from "numeral";
 import MUIDataTable from "mui-datatables";
 import TextUtils from "utils/Text";
 import TagsDialog from "../Dialog/Tags";
-import ReportProblemIcon from "@material-ui/icons/ReportProblem";
+import ReportProblemIcon from "@mui/icons-material/ReportProblem";
 import { getHistory } from "../../utils/History";
 import { useTableFilters } from "../../Hooks/TableHooks";
 import CustomToolbar from "./CustomToolbar";
 
 import {
-  makeStyles,
   Card,
   CardContent,
   LinearProgress,
-} from "@material-ui/core";
+  Box,
+  Typography,
+} from "@mui/material";
+
+import makeStyles from "@mui/styles/makeStyles";
 
 import Moment from "moment";
 
@@ -40,6 +43,37 @@ const useStyles = makeStyles(() => ({
   progress: {
     margin: "30px",
   },
+  categoryBanner: {
+    backgroundColor: "#f8fafc",
+    border: "1px solid #e2e8f0",
+    borderRadius: "6px",
+    padding: "12px 16px",
+    marginBottom: "16px",
+    display: "flex",
+    alignItems: "center",
+    gap: "8px",
+    fontWeight: "500",
+    fontSize: "0.9rem",
+    transition: "background-color 0.2s ease",
+  },
+  costSavingBanner: {
+    borderLeftColor: "#d69e2e",
+    borderLeftWidth: "4px",
+    color: "#975a16",
+    backgroundColor: "#fffbeb",
+    "&:hover": {
+      backgroundColor: "#fef3c7",
+    },
+  },
+  unusedBanner: {
+    borderLeftColor: "#38a169",
+    borderLeftWidth: "4px", 
+    color: "#22543d",
+    backgroundColor: "#f0fff4",
+    "&:hover": {
+      backgroundColor: "#c6f6d5",
+    },
+  },
 }));
 
 /**
@@ -55,10 +89,8 @@ const ResourceTable = ({
   isResourceTableLoading,
   addFiltersObject,
   removeFiltersObject,
-  getFlits,
   getCols,
   checkUncheckColumns,
-  getSearchText,
   dispatchSearchText,
 }) => {
   const [headers, setHeaders] = useState([]);
@@ -163,7 +195,7 @@ const ResourceTable = ({
       setHasError(false);
     }
   }, [currentResource, resources]);
-  const [flits, setFlits] = useState({ test: "only" });
+
   return (
     <Fragment>
       {!hasError && isResourceTableLoading && (
@@ -206,79 +238,98 @@ const ResourceTable = ({
         </Card>
       )}
 
-      {!hasError && currentResourceData.length > 0 && !isResourceTableLoading && (
-        <div id="resourcewrap">
-          {/* {"GET FLITES object :-" + JSON.stringify(getFlits, null, 2)}
+      {!hasError &&
+        currentResourceData.length > 0 &&
+        !isResourceTableLoading && (
+          <div id="resourcewrap">
+            {/* Category Indicator */}
+            {currentResource && resources[currentResource] && (
+              <Box
+                className={`${classes.categoryBanner} ${
+                  resources[currentResource].TotalSpent > 0 
+                    ? classes.costSavingBanner 
+                    : classes.unusedBanner
+                }`}
+              >
+                <Typography>
+                  {resources[currentResource].TotalSpent > 0 
+                    ? "💰 Potential Cost Saving Resource"
+                    : "🗑️ Unused Resource"
+                  }
+                </Typography>
+              </Box>
+            )}
+            {/* {"GET FLITES object :-" + JSON.stringify(getFlits, null, 2)}
           {"GET cols array:-" + JSON.stringify(getCols, null, 2)} */}
-          <MUIDataTable
-            data={currentResourceData}
-            columns={headers}
-            options={Object.assign(tableOptions, {
-              customSearch: (searchQuery, currentRow, columns) => {
-                // You can return your custom icon component here
-                return "EMAIL";
-              },
-              onSearchChange: (searchText) => {
-                dispatchSearchText(searchText);
-                setTableFilters([
-                  {
-                    key: "search",
-                    value: searchText ? searchText : "",
-                  },
-                ]);
-              },
-              onColumnSortChange: (changedColumn, direction) => {
-                setTableFilters([
-                  { key: "sortColumn", value: changedColumn },
-                  { key: "direction", value: direction },
-                ]);
-              },
-              onChangePage: (currentPage) => {
-                setTableFilters([{ key: "page", value: currentPage }]);
-              },
-              onChangeRowsPerPage: (numberOfRows) => {
-                setTableFilters([{ key: "rows", value: numberOfRows }]);
-              },
-              downloadOptions: {
-                filename: `${currentResource}.csv`,
-              },
-              customToolbar: () => {
-                return <CustomToolbar />;
-              },
-              onFilterChipClose: (index, removedFilter, filterList) => {
-                removeFiltersObject({
-                  column: "Data." + removedFilter,
-                  index: index,
-                  filterList: filterList,
-                });
-              },
-              onFilterChange: (column, filterList, type, index) => {
-                addFiltersObject({
-                  ["Data." + column]: String(filterList[index][0]),
-                });
-              },
-              onColumnViewChange: (changedColumn, action) => {
-                // Callback when the columns are shown or hidden
-                var filterNameArrayNew = getCols;
-                if (action === "remove") {
-                  const index = filterNameArrayNew.indexOf(changedColumn);
-                  if (index > -1) {
-                    // only splice array when item is found
-                    filterNameArrayNew.splice(index, 1); // 2nd parameter means remove one item only
+            <MUIDataTable
+              data={currentResourceData}
+              columns={headers}
+              options={Object.assign(tableOptions, {
+                customSearch: () => {
+                  // You can return your custom icon component here
+                  return "EMAIL";
+                },
+                onSearchChange: (searchText) => {
+                  dispatchSearchText(searchText);
+                  setTableFilters([
+                    {
+                      key: "search",
+                      value: searchText ? searchText : "",
+                    },
+                  ]);
+                },
+                onColumnSortChange: (changedColumn, direction) => {
+                  setTableFilters([
+                    { key: "sortColumn", value: changedColumn },
+                    { key: "direction", value: direction },
+                  ]);
+                },
+                onChangePage: (currentPage) => {
+                  setTableFilters([{ key: "page", value: currentPage }]);
+                },
+                onChangeRowsPerPage: (numberOfRows) => {
+                  setTableFilters([{ key: "rows", value: numberOfRows }]);
+                },
+                downloadOptions: {
+                  filename: `${currentResource}.csv`,
+                },
+                customToolbar: () => {
+                  return <CustomToolbar />;
+                },
+                onFilterChipClose: (index, removedFilter, filterList) => {
+                  removeFiltersObject({
+                    column: "Data." + removedFilter,
+                    index: index,
+                    filterList: filterList,
+                  });
+                },
+                onFilterChange: (column, filterList, type, index) => {
+                  addFiltersObject({
+                    ["Data." + column]: String(filterList[index][0]),
+                  });
+                },
+                onColumnViewChange: (changedColumn, action) => {
+                  // Callback when the columns are shown or hidden
+                  var filterNameArrayNew = getCols;
+                  if (action === "remove") {
+                    const index = filterNameArrayNew.indexOf(changedColumn);
+                    if (index > -1) {
+                      // only splice array when item is found
+                      filterNameArrayNew.splice(index, 1); // 2nd parameter means remove one item only
+                    }
+                    // setSelectedColumns(selectedColumns.filter((col) => col !== changedColumn));
+                  } else {
+                    if (filterNameArrayNew.indexOf(changedColumn) === -1) {
+                      filterNameArrayNew.push(changedColumn);
+                    }
+                    // setSelectedColumns([...selectedColumns, changedColumn]);
                   }
-                  // setSelectedColumns(selectedColumns.filter((col) => col !== changedColumn));
-                } else {
-                  if (filterNameArrayNew.indexOf(changedColumn) === -1) {
-                    filterNameArrayNew.push(changedColumn);
-                  }
-                  // setSelectedColumns([...selectedColumns, changedColumn]);
-                }
-                checkUncheckColumns(filterNameArrayNew);
-              },
-            })}
-          />
-        </div>
-      )}
+                  checkUncheckColumns(filterNameArrayNew);
+                },
+              })}
+            />
+          </div>
+        )}
     </Fragment>
   );
 };
@@ -292,19 +343,15 @@ ResourceTable.propTypes = {
   addFiltersObject: PropTypes.func,
   removeFiltersObject: PropTypes.func,
   dispatchSearchText: PropTypes.func,
-  getFlits: PropTypes.object,
   getCols: PropTypes.array,
   checkUncheckColumns: PropTypes.func,
-  getSearchText: PropTypes.string,
 };
 const mapStateToProps = (state) => ({
   resources: state.resources.resources,
   currentResourceData: state.resources.currentResourceData,
   currentResource: state.resources.currentResource,
   isResourceTableLoading: state.resources.isResourceTableLoading,
-  getFlits: state.flit,
   getCols: state.cols,
-  getSearchText: state.searchMui,
 });
 const mapDispatchToProps = (dispatch) => ({
   addFiltersObject: (data) => dispatch({ type: "ADD_IN_OBJECT", data }),

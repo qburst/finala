@@ -1,12 +1,19 @@
 import React, { Fragment, useState, useEffect, useRef } from "react";
 import { connect } from "react-redux";
 import PropTypes from "prop-types";
+import { useNavigate } from "react-router-dom";
 import { setHistory, getHistory } from "../../utils/History";
 import { TagsService } from "services/tags.service";
-import { makeStyles } from "@material-ui/core/styles";
-import { Box, Chip, TextField } from "@material-ui/core";
-import Autocomplete from "@material-ui/lab/Autocomplete";
+import makeStyles from "@mui/styles/makeStyles";
+import { Box, Chip, TextField } from "@mui/material";
+import Autocomplete from "@mui/material/Autocomplete";
 import { titleDirective } from "utils/Title";
+
+// Same colors as ResourcesList filter buttons
+const colors = [
+  "#3f51b5", "#f44336", "#ff9800", "#4caf50", "#9c27b0",
+  "#e91e63", "#00bcd4", "#795548", "#607d8b", "#ff5722"
+];
 
 let fetchTagsTimeout;
 let debounceTimeout;
@@ -50,8 +57,10 @@ const FilterBar = ({
   isScanning,
   setFilters,
   setResource,
+  resources,
 }) => {
   const classes = useStyles();
+  const navigate = useNavigate();
   const [tags, setTags] = useState({});
   const [options, setOptions] = useState([]);
   const [defaultOptions, setDefaultOptions] = useState([]);
@@ -65,18 +74,20 @@ const FilterBar = ({
   const fetchTags = async () => {
     clearTimeout(fetchTagsTimeout);
     const responseData = await TagsService.list(currentExecution).catch(
-      () => false
+      () => false,
     );
     if (!responseData) {
       fetchTagsTimeout = setTimeout(fetchTags, 5000);
       return false;
     }
 
-    const tagOptions = Object.keys(responseData).map((tagKey) => ({
-      title: tagKey.trim(),
-      id: tagKey.trim(),
-      type: "tag:option",
-    }));
+    const tagOptions = Object.keys(responseData).map((tagKey) => {
+      return {
+        title: tagKey.trim(),
+        id: tagKey.trim(),
+        type: "tag:option",
+      };
+    });
 
     if (!isFilterBarOpen.current) {
       setTags(responseData);
@@ -94,7 +105,7 @@ const FilterBar = ({
    */
   const updateFilters = (filters) => {
     setFilters(filters);
-    setHistory({
+    setHistory(navigate, {
       filters: filters,
     });
   };
@@ -351,24 +362,43 @@ const FilterBar = ({
           freeSolo
           options={options}
           getOptionLabel={(option) => option.title}
-          getOptionSelected={() => false}
+          isOptionEqualToValue={() => false}
           renderTags={(value) =>
-            value.map((option) => (
-              <Fragment key={option.title}>
-                {option.type === "tag:incomplete" && (
-                  <span key={option.title}>{option.title}</span>
-                )}
-                {option.type !== "tag:incomplete" && (
-                  <Chip
-                    className={classes.chips}
-                    ma={2}
-                    label={option.title}
-                    key={option.title}
-                    onDelete={() => deleteFilter(option)}
-                  />
-                )}
-              </Fragment>
-            ))
+            value.map((option, index) => {
+              // Get resource color based on the resource name for resource filters
+              let chipStyle = {};
+              if (option.type === "resource" && option.value) {
+                // Find the matching resource in resources to get its color index
+                const resourceIndex = Object.values(resources || {}).findIndex(
+                  r => r.ResourceName === option.value
+                );
+                if (resourceIndex !== -1) {
+                  const colorIndex = resourceIndex % colors.length;
+                  chipStyle = {
+                    backgroundColor: colors[colorIndex],
+                    color: "#ffffff",
+                  };
+                }
+              }
+              
+              return (
+                <Fragment key={option.title}>
+                  {option.type === "tag:incomplete" && (
+                    <span key={option.title}>{option.title}</span>
+                  )}
+                  {option.type !== "tag:incomplete" && (
+                    <Chip
+                      className={classes.chips}
+                      ma={2}
+                      label={option.title}
+                      key={option.title}
+                      onDelete={() => deleteFilter(option)}
+                      style={chipStyle}
+                    />
+                  )}
+                </Fragment>
+              );
+            })
           }
           renderInput={(params) => (
             <TextField
@@ -399,6 +429,7 @@ const mapStateToProps = (state) => ({
   filters: state.filters.filters,
   currentExecution: state.executions.current,
   isScanning: state.executions.isScanning,
+  resources: state.resources.resources,
 });
 const mapDispatchToProps = (dispatch) => ({
   setFilters: (data) => dispatch({ type: "SET_FILTERS", data }),

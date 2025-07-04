@@ -1,6 +1,7 @@
 import React, { Fragment, useEffect } from "react";
 import { connect } from "react-redux";
 import PropTypes from "prop-types";
+import { useNavigate } from "react-router-dom";
 import { ResourcesService } from "services/resources.service";
 import { SettingsService } from "services/settings.service";
 import { titleDirective } from "utils/Title";
@@ -48,6 +49,8 @@ const DataFacotry = ({
   setIsAppLoading,
   setIsScanning,
 }) => {
+  const navigate = useNavigate();
+
   /**
    * start fetching data from server
    * will load executions list
@@ -63,7 +66,7 @@ const DataFacotry = ({
   const fetchData = async () => {
     clearTimeout(initTimeoutRequest);
     const executionsList = await ResourcesService.GetExecutions().catch(
-      () => []
+      () => [],
     );
 
     setExecutions(executionsList);
@@ -76,13 +79,13 @@ const DataFacotry = ({
 
     let executionId = getHistory("executionId");
 
-    const inListIndex = executionsList.findIndex(
-      (row) => row.ID === executionId
-    );
+    const inListIndex = executionsList.findIndex((row) => {
+      return row.ID === executionId;
+    });
 
     if (inListIndex === -1) {
       executionId = executionsList[0].ID;
-      setHistory({
+      setHistory(navigate, {
         executionId,
       });
     }
@@ -95,9 +98,9 @@ const DataFacotry = ({
    * @param {array} ResourcesList Resource List fetched from server
    */
   const getScanningResource = (ResourcesList) => {
-    const resource = Object.values(ResourcesList).find(
-      (row) => row.Status === 0
-    );
+    const resource = Object.values(ResourcesList).find((row) => {
+      return row.Status === 0;
+    });
     if (resource) {
       return titleDirective(resource.ResourceName);
     }
@@ -120,7 +123,7 @@ const DataFacotry = ({
       await onCurrentResourceChanged(
         currentResource,
         currentExecution,
-        filters
+        filters,
       );
     }
   };
@@ -132,7 +135,7 @@ const DataFacotry = ({
   const onCurrentResourceChanged = async (
     currentResource,
     currentExecution,
-    filters = []
+    filters = [],
   ) => {
     clearTimeout(fetchTableTimeoutRequest);
     setIsResourceTableLoading(true);
@@ -148,7 +151,7 @@ const DataFacotry = ({
   const getResources = async (currentExecution, filters = []) => {
     const ResourcesList = await ResourcesService.Summary(
       currentExecution,
-      filters
+      filters,
     ).catch(() => false);
 
     const scanningResource = getScanningResource(ResourcesList);
@@ -161,7 +164,7 @@ const DataFacotry = ({
     if (scanningResource) {
       fetchTimeoutRequest = setTimeout(
         () => getResources(currentExecution, filters),
-        5000
+        5000,
       );
     }
 
@@ -177,13 +180,13 @@ const DataFacotry = ({
   const getResourceTable = async (
     currentResource,
     currentExecution,
-    filters = []
+    filters = [],
   ) => {
     clearTimeout(fetchTableTimeoutRequest);
     const ResourceRows = await ResourcesService.GetContent(
       currentResource,
       currentExecution,
-      filters
+      filters,
     ).catch(() => []);
 
     let rows = [];
@@ -197,7 +200,7 @@ const DataFacotry = ({
     if (resourceInfo && resourceInfo.Status == 0) {
       fetchTableTimeoutRequest = setTimeout(
         () => getResourceTable(currentResource, currentExecution, filters),
-        5000
+        5000,
       );
     } else {
       clearTimeout(fetchTableTimeoutRequest);
@@ -239,7 +242,7 @@ const DataFacotry = ({
     }
     // remove resource from filters detection
     const filtersList = JSON.stringify(
-      filters.filter((row) => row.type !== "resource")
+      filters.filter((row) => row.type !== "resource"),
     );
     if (filtersList !== lastFiltersSearched) {
       lastFiltersSearched = filtersList;

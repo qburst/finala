@@ -1,20 +1,20 @@
 import React, { Fragment } from "react";
 import { connect } from "react-redux";
 import PropTypes from "prop-types";
-import colors from "./colors.json";
+// Use same colors as ResourcesList filter buttons
+const colors = [
+  "#3f51b5", "#f44336", "#ff9800", "#4caf50", "#9c27b0",
+  "#e91e63", "#00bcd4", "#795548", "#607d8b", "#ff5722"
+];
 import Chart from "react-apexcharts";
 import { titleDirective } from "../../utils/Title";
 import { MoneyDirective } from "../../utils/Money";
+import { useNavigate } from "react-router-dom";
 import { setHistory } from "../../utils/History";
 
-import {
-  Box,
-  Card,
-  CardContent,
-  LinearProgress,
-  makeStyles,
-} from "@material-ui/core";
-import ReportProblemIcon from "@material-ui/icons/ReportProblem";
+import { Box, Card, CardContent, LinearProgress } from "@mui/material";
+import makeStyles from "@mui/styles/makeStyles";
+import ReportProblemIcon from "@mui/icons-material/ReportProblem";
 
 const useStyles = makeStyles(() => ({
   noDataTitle: {
@@ -47,7 +47,8 @@ const ResourcesChart = ({
   setResource,
 }) => {
   const classes = useStyles();
-  const colorList = colors.map((color) => color.hex);
+  const navigate = useNavigate();
+  const colorList = colors;
   const sortedResources = Object.values(resources)
     .filter((row) => row.TotalSpent > 0)
     .sort((a, b) => (a.TotalSpent >= b.TotalSpent ? -1 : 1));
@@ -138,7 +139,7 @@ const ResourcesChart = ({
     setResource(resource.ResourceName);
     addFilter(filter);
 
-    setHistory({
+    setHistory(navigate, {
       filters: filters,
     });
   };

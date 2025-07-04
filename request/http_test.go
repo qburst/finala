@@ -2,7 +2,6 @@ package request
 
 import (
 	"io"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"testing"
@@ -49,7 +48,7 @@ func TestClient(t *testing.T) {
 		t.Fatalf("unexpected status code: got %d want %d", res.StatusCode, http.StatusOK)
 	}
 
-	body, _ := ioutil.ReadAll(res.Body)
+	body, _ := io.ReadAll(res.Body)
 	if string(body) != "foo" {
 		t.Fatalf("unexpected http response, got %s, expected %s", string(body), "foo")
 	}

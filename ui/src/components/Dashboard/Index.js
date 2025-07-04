@@ -1,7 +1,10 @@
 import React, { Fragment } from "react";
 import { connect } from "react-redux";
-import { makeStyles } from "@material-ui/core/styles";
+import makeStyles from "@mui/styles/makeStyles";
+import { useNavigate } from "react-router-dom";
 import { setHistory } from "../../utils/History";
+import { Button } from "@mui/material";
+import { Card, CardContent, Typography } from "@mui/material";
 
 import PropTypes from "prop-types";
 import FilterBar from "./FilterBar";
@@ -12,7 +15,7 @@ import ResourcesList from "./ResourcesList";
 import ResourceTable from "./ResourceTable";
 import ExecutionIndex from "../Executions/Index";
 import Logo from "../Logo";
-import { Grid, Box } from "@material-ui/core";
+import { Grid, Box } from "@mui/material";
 
 const useStyles = makeStyles(() => ({
   root: {
@@ -26,6 +29,59 @@ const useStyles = makeStyles(() => ({
   },
   selectorGrid: {
     textAlign: "right",
+  },
+  overviewCard: {
+    backgroundColor: "#fbfcfd",
+    border: "1px solid #e1e5e9",
+    borderRadius: "8px",
+    boxShadow: "0 1px 3px rgba(0, 0, 0, 0.05)",
+    marginBottom: "24px",
+    transition: "box-shadow 0.2s ease",
+    "&:hover": {
+      boxShadow: "0 4px 12px rgba(0, 0, 0, 0.08)",
+    },
+  },
+  overviewTitle: {
+    fontFamily: "MuseoModerno",
+    fontWeight: "600",
+    fontSize: "1.4rem",
+    color: "#1a202c",
+    marginBottom: "12px",
+    display: "flex",
+    alignItems: "center",
+    gap: "8px",
+  },
+  overviewDescription: {
+    color: "#4a5568",
+    lineHeight: "1.6",
+    fontSize: "0.95rem",
+  },
+  categoryLabel: {
+    fontWeight: "600",
+    fontSize: "0.9rem",
+  },
+  costSavingLabel: {
+    color: "#d69e2e",
+  },
+  unusedLabel: {
+    color: "#38a169",
+  },
+  logoutButton: {
+    backgroundColor: "#fff",
+    color: "#e53e3e",
+    border: "1px solid #e53e3e",
+    fontWeight: "500",
+    borderRadius: "6px",
+    padding: "8px 16px",
+    textTransform: "none",
+    fontSize: "0.9rem",
+    transition: "all 0.2s ease",
+    "&:hover": {
+      backgroundColor: "#e53e3e",
+      color: "#fff",
+      transform: "translateY(-1px)",
+      boxShadow: "0 2px 8px rgba(229, 62, 62, 0.25)",
+    },
   },
 }));
 
@@ -41,16 +97,17 @@ const DashboardIndex = ({
   filters,
 }) => {
   const classes = useStyles();
+  const navigate = useNavigate();
   /**
    * Will clear selected filter and show main page
    */
   const gotoHome = () => {
-    const updatedFilters = filters.filter(
-      (filter) => filter.id.substr(0, 8) !== "resource"
-    );
+    const updatedFilters = filters.filter((filter) => {
+      return filter.id.substr(0, 8) !== "resource";
+    });
     setResource(null);
     setFilters(updatedFilters);
-    setHistory({ filters: updatedFilters });
+    setHistory(navigate, { filters: updatedFilters });
   };
 
   return (
@@ -64,10 +121,24 @@ const DashboardIndex = ({
             <ResourceScanning />
           </Grid>
           <Grid item sm={4} xs={12} className={classes.selectorGrid}>
+            <Box sx={{ display: "flex", justifyContent: "flex-end", mb: 1 }}>
+              <Button
+                variant="outlined"
+                onClick={() => {
+                  localStorage.removeItem("finalaAuthToken");
+                  navigate("/login");
+                }}
+                className={classes.logoutButton}
+              >
+                Logout
+              </Button>
+            </Box>
             <ExecutionIndex />
           </Grid>
         </Grid>
       </Box>
+
+
 
       <FilterBar />
       <StatisticsBar />

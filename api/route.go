@@ -6,13 +6,12 @@ import (
 	"finala/api/email_utility"
 	"finala/api/httpparameters"
 	"finala/api/storage"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/url"
 	"strconv"
 	"time"
 
-	"github.com/gorilla/mux"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -21,7 +20,7 @@ const (
 	resourceTrendsLimitDefault = 60
 )
 
-// DetectEventsInfo descrive the incoming HTTP events
+// DetectEventsInfo describes the incoming HTTP events
 type DetectEventsInfo struct {
 	ResourceName string
 	EventType    string
@@ -38,8 +37,7 @@ type ReportAPIResponse struct {
 // GetSummary return list of summary executions
 func (server *Server) GetSummary(resp http.ResponseWriter, req *http.Request) {
 	queryParams := req.URL.Query()
-	params := mux.Vars(req)
-	executionID := params["executionID"]
+	executionID := req.PathValue("executionID")
 	filters := httpparameters.GetFilterQueryParamWithOutPrefix(queryParamFilterPrefix, queryParams)
 
 	response, err := server.storage.GetSummary(executionID, filters)
@@ -67,8 +65,7 @@ func (server *Server) GetExecutions(resp http.ResponseWriter, req *http.Request)
 func (server *Server) GetResourceData(resp http.ResponseWriter, req *http.Request) {
 	queryParams := req.URL.Query()
 	queryErrs := url.Values{}
-	params := mux.Vars(req)
-	resourceType := params["type"]
+	resourceType := req.PathValue("type")
 	var search string
 	filters := httpparameters.GetFilterQueryParamWithOutPrefix(queryParamFilterPrefix, queryParams)
 
@@ -94,8 +91,7 @@ func (server *Server) GetResourceData(resp http.ResponseWriter, req *http.Reques
 // GetResourceTrends return trends by resource type, id, region and metric
 func (server *Server) GetResourceTrends(resp http.ResponseWriter, req *http.Request) {
 	queryParams := req.URL.Query()
-	params := mux.Vars(req)
-	resourceType := params["type"]
+	resourceType := req.PathValue("type")
 	filters := httpparameters.GetFilterQueryParamWithOutPrefix(queryParamFilterPrefix, queryParams)
 
 	limitString := req.URL.Query().Get("limit")
@@ -119,9 +115,7 @@ func (server *Server) GetResourceTrends(resp http.ResponseWriter, req *http.Requ
 
 // GetExecutionTags return resuts details by resource type
 func (server *Server) GetExecutionTags(resp http.ResponseWriter, req *http.Request) {
-
-	params := mux.Vars(req)
-	executionID := params["executionID"]
+	executionID := req.PathValue("executionID")
 
 	response, err := server.storage.GetExecutionTags(executionID)
 	if err != nil {
@@ -134,11 +128,9 @@ func (server *Server) GetExecutionTags(resp http.ResponseWriter, req *http.Reque
 
 // DetectEvents save collectors events data
 func (server *Server) DetectEvents(resp http.ResponseWriter, req *http.Request) {
+	executionID := req.PathValue("executionID")
 
-	params := mux.Vars(req)
-	executionID := params["executionID"]
-
-	buf, bodyErr := ioutil.ReadAll(req.Body)
+	buf, bodyErr := io.ReadAll(req.Body)
 
 	if bodyErr != nil {
 		server.JSONWrite(resp, http.StatusBadRequest, HttpErrorResponse{Error: bodyErr.Error()})
@@ -173,15 +165,14 @@ func (server *Server) DetectEvents(resp http.ResponseWriter, req *http.Request) 
 	}()
 
 	server.JSONWrite(resp, http.StatusAccepted, nil)
-
 }
 
-//NotFoundRoute return when route not found
+// NotFoundRoute return when route not found
 func (server *Server) NotFoundRoute(resp http.ResponseWriter, req *http.Request) {
 	server.JSONWrite(resp, http.StatusNotFound, HttpErrorResponse{Error: "Path not found"})
 }
 
-//HealthCheckHandler return ok if server is up
+// HealthCheckHandler return ok if server is up
 func (server *Server) HealthCheckHandler(resp http.ResponseWriter, req *http.Request) {
 	server.JSONWrite(resp, http.StatusOK, HealthResponse{Status: true})
 }
@@ -199,7 +190,7 @@ func (server *Server) VersionHandler(resp http.ResponseWriter, req *http.Request
 // send pdf report via mail
 func (server *Server) SendReport(resp http.ResponseWriter, req *http.Request) {
 
-	buf, bodyErr := ioutil.ReadAll(req.Body)
+	buf, bodyErr := io.ReadAll(req.Body)
 
 	if bodyErr != nil {
 		server.JSONWrite(resp, http.StatusBadRequest, HttpErrorResponse{Error: bodyErr.Error()})
@@ -246,10 +237,18 @@ func (server *Server) SendReport(resp http.ResponseWriter, req *http.Request) {
 	pdfContent := "A Comprehensive Analysis of Efficiency Factors and Recommendations for Improvement"
 	email_utility.CreatePDF(pdfFileName, pdfContent, responseData, sendEmailInfo)
 	emailConfig, err := config.LoadAPI("/etc/finala/config.yaml")
+	if err != nil {
+		server.JSONWrite(resp, http.StatusInternalServerError, HttpErrorResponse{Error: "Failed to load email configuration: " + err.Error()})
+		return
+	}
 	username := emailConfig.SMTPConf.Username
 	password := emailConfig.SMTPConf.Password
 	smtpServer := emailConfig.SMTPConf.SMTPServer
-	smtpPort, _ := strconv.Atoi(emailConfig.SMTPConf.SMTPPort)
+	smtpPort, err := strconv.Atoi(emailConfig.SMTPConf.SMTPPort)
+	if err != nil {
+		server.JSONWrite(resp, http.StatusInternalServerError, HttpErrorResponse{Error: "Invalid SMTP port in configuration: " + err.Error()})
+		return
+	}
 	subject := "Finala Report"
 	body := "<p>Kindly review the attached PDF for the comprehensive report on Finala.</p>"
 	sender := email_utility.NewSMTPSender(smtpServer, smtpPort, username, password)

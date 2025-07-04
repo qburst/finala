@@ -1,7 +1,6 @@
 package config
 
 import (
-	"io/ioutil"
 	"os"
 	"strings"
 
@@ -17,9 +16,17 @@ type ElasticsearchConfig struct {
 	Endpoints []string `yaml:"endpoints"`
 }
 
+// MeilisearchConfig describe meilisearch storage configuration
+type MeilisearchConfig struct {
+	Username  string   `yaml:"username"`
+	Password  string   `yaml:"password"`
+	Endpoints []string `yaml:"endpoints"`
+}
+
 // StorageConfig describe the supported storage types
 type StorageConfig struct {
 	ElasticSearch ElasticsearchConfig `yaml:"elasticsearch"`
+	Meilisearch   MeilisearchConfig   `yaml:"meilisearch"`
 }
 
 type EmailConfig struct {
@@ -49,7 +56,7 @@ type SendEmailInfo struct {
 // LoadAPI will load yaml file go struct
 func LoadAPI(location string) (APIConfig, error) {
 	config := APIConfig{}
-	data, err := ioutil.ReadFile(location)
+	data, err := os.ReadFile(location)
 	if err != nil {
 		log.Errorf("Could not parse configuration file: %s", err)
 		return config, err
@@ -65,7 +72,15 @@ func LoadAPI(location string) (APIConfig, error) {
 			"environment_variable": "OVERRIDE_STORAGE_ENDPOINT",
 			"value":                overrideStorageEndpoint,
 		}).Info("override storage endpoint")
-		config.Storage.ElasticSearch.Endpoints = strings.Split(overrideStorageEndpoint, ",")
+		config.Storage.Meilisearch.Endpoints = strings.Split(overrideStorageEndpoint, ",")
+	}
+
+	overrideStoragePassword := os.Getenv("OVERRIDE_STORAGE_PASSWORD")
+	if overrideStoragePassword != "" {
+		log.WithFields(log.Fields{
+			"environment_variable": "OVERRIDE_STORAGE_PASSWORD",
+		}).Info("override storage password")
+		config.Storage.Meilisearch.Password = overrideStoragePassword
 	}
 
 	return config, nil
